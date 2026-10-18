@@ -143,7 +143,7 @@ app.post("/login", async(req, res)=>{
 	let data=await db.collection("usuarios").findOne({"usuario":user});
 	if(data==null){
 		res.sendStatus(401);
-	}else if(argon2.verify(data.password, pass)){
+	}else if(await argon2.verify(data.password, pass)){
 		let token=jwt.sign({"usuario":data.usuario}, await process.env.LLAVEJWT, {expiresIn:1000})
 		res.json({"token":token, "id":data.usuario});
 	}else{
@@ -151,7 +151,7 @@ app.post("/login", async(req, res)=>{
 	}
 })
 
-const options = {
+/*const options = {
       key: fs.readFileSync('server.key'),
       cert: fs.readFileSync('server.crt')
 };
@@ -160,11 +160,11 @@ https.createServer(options, app).listen(3000, async () => {
 		await process.loadEnvFile(".env");
 		await connectToDB();
       	console.log('HTTPS Server running on port 3000');
-});
+});*/
 
 
-/*app.listen(PORT,async ()=>{
+app.listen(PORT,async ()=>{
 	await process.loadEnvFile(".env")
 	await connectToDB();
 	console.log("aplicacion iniciada en puerto 3000")
-});*/
+});
