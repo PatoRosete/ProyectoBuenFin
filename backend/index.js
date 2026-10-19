@@ -10,6 +10,7 @@ const https = require('https');
 const app=express();
 let db;
 const PORT=3000;
+const ROLES_VALIDOS=["consumidor","comercio","admin"];
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -31,69 +32,85 @@ async function log(sujeto, accion, objeto){
 	
 }
 
-async function getList(coleccion, req, res){
+
+function autenticar(...rolesPermitidos){
+	return (req, res, next)=>{
+		try{
+			const token=jwt.verify(req.get("Authentication"), process.env.LLAVEJWT);
+			if(!rolesPermitidos.includes(token.rol)){
+				return res.sendStatus(403);
+			}
+			req.user=token;   // aqui queda {usuario, rol}
+			next();
+		}catch{
+			res.sendStatus(401);
+		}
+	};
+}
+
+function filtroPorRol(req){
+	return req.user.rol=="comercio" ? {owner:req.user.usuario} : {};
+}
+
+async function getList(coleccion, req, res, filtro){
 	let sortBy=req.query._sort;
 	let sortOrder=req.query._order=="ASC"?1:-1;
 	let inicio=Number(req.query._start);
 	let fin=Number(req.query._end);
 	let sorter={}
 	sorter[sortBy]=sortOrder;
-	let data=await db.collection(coleccion).find({}).sort(sorter).project({_id:0}).toArray();
+	let data=await db.collection(coleccion).find(filtro).sort(sorter).project({_id:0}).toArray();
 	res.set("Access-Control-Expose-Headers", "X-Total-Count");
 	res.set("X-Total-Count", data.length);
 	data=data.slice(inicio,fin);
 	res.json(data);
 }
 
-async function getMany(coleccion, req, res){
-	let data=[]
-	for(let index=0; index<req.query.id.length; index++){
-		let dataParcial=await db.collection(coleccion).find({id: Number(req.query.id[index])}).project({_id:0}).toArray();
-		data=await data.contact(dataParcial)
-	}
+async function getMany(coleccion, req, res, filtro){
+	let ids=[].concat(req.query.id).map(Number);
+	let data=await db.collection(coleccion).find({...filtro, id:{$in:ids}}).project({_id:0}).toArray();
 	res.json(data);
 }
 
-async function getManyReference(coleccion, req, res){
-	let data=await db.collection(coleccion).find(req.query).project({_id:0}).toArray();
+async function getManyReference(coleccion, req, res, filtro){
+	let data=await db.collection(coleccion).find({...req.query, ...filtro}).project({_id:0}).toArray();
 	res.set("Access-Control-Expose-Headers", "X-Total-Count");
 	res.set("X-Total-Count", data.length);
 	res.json(data);
 }
-app.get("/Productos", async (req, res)=>{
+
+app.get("/Productos", autenticar("admin","comercio","consumidor"), async (req, res)=>{
 	try{
-		let token=req.get("Authentication");
-		let verifiedToken=await jwt.verify(token, await process.env.LLAVEJWT);
-		let user=verifiedToken.usuario;
-		await log(user, "consultar datos", "/Productos");
+		await log(req.user.usuario, "consultar datos", "/Productos");
+		let filtro=filtroPorRol(req);
 		if("_sort" in req.query){//getList
-			await getList("productos", req,res);
+			await getList("productos", req, res, filtro);
 		}else if("id" in req.query){
-			await getMany("productos", req,res)
+			await getMany("productos", req, res, filtro);
 		}else{	
-			await getManyReference("productos", req,res);
+			await getManyReference("productos", req, res, filtro);
 		}
 	}catch{
-		res.sendStatus(401);
+		res.sendStatus(500);
 	}
 });
 
-async function deleteOne(coleccion, id, req, res){
-	let data=await db.collection(coleccion).deleteOne({"id": id});
+async function deleteOne(coleccion, filtro, req, res){
+	let data=await db.collection(coleccion).deleteOne(filtro);
 	res.json(data);
 }
 
-app.delete("/Productos/:id", async (req, res)=>{
-	await deleteOne("productos", Number(req.params.id), req, res);
+app.delete("/Productos/:id", autenticar("admin","comercio"), async (req, res)=>{
+	await deleteOne("productos", {...filtroPorRol(req), id:Number(req.params.id)}, req, res);
 });
 
-async function getOne(coleccion, id, req, res){
-	let data=await db.collection(coleccion).find({"id": id}).project({_id:0}).toArray();
+async function getOne(coleccion, filtro, req, res){
+	let data=await db.collection(coleccion).find(filtro).project({_id:0}).toArray();
 	res.json(data[0]);
 }
 
-app.get("/Productos/:id", async (req, res)=>{
-	await getOne("productos", Number(req.params.id), req, res);
+app.get("/Productos/:id", autenticar("admin","comercio","consumidor"), async (req, res)=>{
+	await getOne("productos", {...filtroPorRol(req), id:Number(req.params.id)}, req, res);
 });
 
 
@@ -107,7 +124,7 @@ async function updateData(coleccion,  req, res){
 }
 
 
-app.put("/Productos/:id", async (req, res)=>{
+app.put("/Productos/:id", autenticar("admin"), async (req, res)=>{
 	await updateData("productos", req, res)
 })
 
@@ -116,9 +133,10 @@ async function createData(coleccion, valores, req, res){
 	res.json(data);
 }
 
-app.post("/Productos", async (req, res)=>{
+app.post("/Productos", autenticar("admin","comercio"), async (req, res)=>{
 	let valores=req.body;
 	valores["id"]=Number(valores["id"]);
+	valores["owner"]=req.user.usuario;   // sale del token, no del formulario
 	await createData("productos", valores, req, res);
 })
 
@@ -129,7 +147,8 @@ app.post("/registrarse", async (req, res)=>{
 	let data=await db.collection("usuarios").findOne({"usuario":user});
 	if(data==null){
 		const hash=await argon2.hash(pass, {type:argon2.argon2id, memoryCost: 64*1024, timeCost:3, parallelism:1, saltLength:128});
-		let usuarioAgregar={"usuario":user, "password":hash};
+		// El rol lo pone el servidor: todos entran como consumidor, sin leer nada del formulario
+		let usuarioAgregar={"usuario":user, "password":hash, "rol":"consumidor"};
 		data=await db.collection("usuarios").insertOne(usuarioAgregar);
 		res.sendStatus(201);
 	}else{
@@ -144,11 +163,29 @@ app.post("/login", async(req, res)=>{
 	if(data==null){
 		res.sendStatus(401);
 	}else if(await argon2.verify(data.password, pass)){
-		let token=jwt.sign({"usuario":data.usuario}, await process.env.LLAVEJWT, {expiresIn:1000})
-		res.json({"token":token, "id":data.usuario});
+		let rol=data.rol || "consumidor";
+		let token=jwt.sign({"usuario":data.usuario, "rol":rol}, await process.env.LLAVEJWT, {expiresIn:1000})
+		res.json({"token":token, "id":data.usuario, "rol":rol});
 	}else{
 		res.sendStatus(401);
 	}
+})
+
+// Solo un admin puede cambiar el rol de alguien
+app.put("/usuarios/:usuario/rol", autenticar("admin"), async (req, res)=>{
+	let nuevoRol=req.body.rol;
+	if(!ROLES_VALIDOS.includes(nuevoRol)){
+		return res.sendStatus(400);
+	}
+	if(req.params.usuario==req.user.usuario){
+		return res.sendStatus(400);   // un admin no se cambia su propio rol
+	}
+	let data=await db.collection("usuarios").updateOne({usuario:req.params.usuario}, {$set:{rol:nuevoRol}});
+	if(data.matchedCount==0){
+		return res.sendStatus(404);
+	}
+	await log(req.user.usuario, "cambiar rol a "+nuevoRol, "/usuarios/"+req.params.usuario);
+	res.sendStatus(200);
 })
 
 /*const options = {
