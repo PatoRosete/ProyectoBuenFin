@@ -1,11 +1,28 @@
 import { AuthProvider } from "react-admin";
 
-type Regla = (p: { resource: string; action: string }) => boolean;
+type Regla = (p: { resource: string; action: string; record?: any }) => boolean;
+
+
+const esMio = (record?: any) => {
+    const { id } = JSON.parse(sessionStorage.getItem("identity") ?? "{}");
+    return !record || record.owner === id;
+};
 
 const accessControlStrategies: Record<string, Regla> = {
-    admin:      () => true,
-    comercio:   ({ action }) => ["list", "show", "create", "delete"].includes(action),
-    consumidor: ({ action }) => ["list", "show"].includes(action),
+    admin: () => true,
+    comercio: ({ resource, action, record }) => {
+        if (resource === "Productos") {
+            return ["list", "show", "create"].includes(action)
+                || (["edit", "delete"].includes(action) && esMio(record));
+        }
+        if (resource === "Comercios") {
+            return ["list", "show"].includes(action)
+                || (action === "edit" && esMio(record));
+        }
+        return false; 
+    },
+    consumidor: ({ resource, action }) =>
+        ["Productos", "Comercios"].includes(resource) && ["list", "show"].includes(action),
 };
 
 const authProvider : AuthProvider={
@@ -46,9 +63,12 @@ const authProvider : AuthProvider={
         }
         return Promise.resolve();
     },
-    canAccess: async ({resource, action})=>{
+    getPermissions: ()=>{
+        return Promise.resolve(sessionStorage.getItem("rol"));
+    },
+    canAccess: async ({resource, action, record})=>{
         const rol=sessionStorage.getItem("rol") ?? "";
-        return accessControlStrategies[rol]?.({resource, action}) ?? false;   // rol desconocido: sin acceso
+        return accessControlStrategies[rol]?.({resource, action, record}) ?? false;   
     },
 }
 export default authProvider;

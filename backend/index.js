@@ -11,36 +11,63 @@ const app=express();
 let db;
 const PORT=3000;
 const ROLES_VALIDOS=["consumidor","comercio","admin"];
+const RFC_REGEX=/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;   // 3-4 letras + fecha AAMMDD + homoclave
 app.use(cors());
 app.use(bodyParser.json());
 
 async function connectToDB(){
-	let client=new MongoClient(await process.env.DB);
+	let client=new MongoClient(process.env.DB);
 	await client.connect();
 	db=client.db();
 	console.log("conectado a la base de datos");
-} 
+}
 
 
 async function log(sujeto, accion, objeto){
-	nuevoLog={}
+	const nuevoLog={};
 	nuevoLog["timestamp"]=new Date();
 	nuevoLog["sujeto"]=sujeto;
 	nuevoLog["accion"]=accion;
 	nuevoLog["objeto"]=objeto;
 	await db.collection("log").insertOne(nuevoLog);
-	
 }
 
 
-function autenticar(...rolesPermitidos){
+
+function hashear(pass){
+	return argon2.hash(pass, {type:argon2.argon2id, memoryCost:64*1024, timeCost:3, parallelism:1, saltLength:128});
+}
+
+function esTexto(v){
+	return typeof v==="string" && v.trim()!=="";
+}
+
+async function siguienteId(coleccion){
+	const ultimo=await db.collection(coleccion).find().sort({id:-1}).limit(1).toArray();
+	return ultimo.length ? ultimo[0].id+1 : 1;
+}
+
+
+function filtroDesdeQuery(query, permitidos){
+	const filtro={};
+	for(let i=0; i<permitidos.length; i++){
+		const campo=permitidos[i];
+		const v=query[campo];
+		if(typeof v!=="string" || v==="") continue;
+		filtro[campo]=isNaN(v) ? v : Number(v);
+	}
+	return filtro;
+}
+
+
+function autenticar(rolesPermitidos){
 	return (req, res, next)=>{
 		try{
 			const token=jwt.verify(req.get("Authentication"), process.env.LLAVEJWT);
 			if(!rolesPermitidos.includes(token.rol)){
 				return res.sendStatus(403);
 			}
-			req.user=token;   // aqui queda {usuario, rol}
+			req.user=token;   
 			next();
 		}catch{
 			res.sendStatus(401);
@@ -52,148 +79,243 @@ function filtroPorRol(req){
 	return req.user.rol=="comercio" ? {owner:req.user.usuario} : {};
 }
 
-async function getList(coleccion, req, res, filtro){
-	let sortBy=req.query._sort;
-	let sortOrder=req.query._order=="ASC"?1:-1;
-	let inicio=Number(req.query._start);
-	let fin=Number(req.query._end);
-	let sorter={}
-	sorter[sortBy]=sortOrder;
-	let data=await db.collection(coleccion).find(filtro).sort(sorter).project({_id:0}).toArray();
+
+
+async function getList(coleccion, req, res, filtro, permitidos){
+	const consulta=Object.assign({}, filtroDesdeQuery(req.query, permitidos), filtro);   
+	const sorter={};
+	sorter[req.query._sort]=req.query._order=="ASC"?1:-1;
+	const inicio=Number(req.query._start);
+	const fin=Number(req.query._end);
+	let data=await db.collection(coleccion).find(consulta).sort(sorter).project({_id:0}).toArray();
 	res.set("Access-Control-Expose-Headers", "X-Total-Count");
 	res.set("X-Total-Count", data.length);
-	data=data.slice(inicio,fin);
-	res.json(data);
+	res.json(data.slice(inicio, fin));
 }
 
 async function getMany(coleccion, req, res, filtro){
-	let ids=[].concat(req.query.id).map(Number);
-	let data=await db.collection(coleccion).find({...filtro, id:{$in:ids}}).project({_id:0}).toArray();
+	const ids=[].concat(req.query.id).map(Number);
+	const consulta=Object.assign({}, filtro);
+	consulta.id={$in:ids};
+	const data=await db.collection(coleccion).find(consulta).project({_id:0}).toArray();
 	res.json(data);
 }
 
-async function getManyReference(coleccion, req, res, filtro){
-	let data=await db.collection(coleccion).find({...req.query, ...filtro}).project({_id:0}).toArray();
-	res.set("Access-Control-Expose-Headers", "X-Total-Count");
-	res.set("X-Total-Count", data.length);
-	res.json(data);
+async function getOne(coleccion, filtro, res){
+	const data=await db.collection(coleccion).find(filtro).project({_id:0}).toArray();
+	if(data.length==0) return res.sendStatus(404);
+	res.json(data[0]);
 }
 
-app.get("/Productos", autenticar("admin","comercio","consumidor"), async (req, res)=>{
-	try{
-		await log(req.user.usuario, "consultar datos", "/Productos");
-		let filtro=filtroPorRol(req);
-		if("_sort" in req.query){//getList
-			await getList("productos", req, res, filtro);
-		}else if("id" in req.query){
-			await getMany("productos", req, res, filtro);
-		}else{	
-			await getManyReference("productos", req, res, filtro);
+async function createData(coleccion, valores, res){
+	await db.collection(coleccion).insertOne(valores);
+	delete valores._id;
+	res.status(201).json(valores);
+}
+
+async function updateData(coleccion, req, res, filtro, extra){
+	const valores=Object.assign({}, req.body);
+	delete valores._id;
+	delete valores.owner;            
+	const id=Number(req.params.id);
+	Object.assign(valores, extra);
+	valores.id=id;
+	const consulta=Object.assign({}, filtro);
+	consulta.id=id;
+	const r=await db.collection(coleccion).updateOne(consulta, {$set:valores});
+	if(r.matchedCount==0) return res.sendStatus(404);
+	const data=await db.collection(coleccion).find({id:id}).project({_id:0}).toArray();
+	res.json(data[0]);
+}
+
+async function deleteOne(coleccion, filtro, res){
+	const data=await db.collection(coleccion).find(filtro).project({_id:0}).toArray();
+	if(data.length==0) return res.sendStatus(404);
+	await db.collection(coleccion).deleteOne(filtro);
+	res.json(data[0]);
+}
+
+
+function listar(coleccion, recurso, permitidos, soloPropios){
+	return async (req, res)=>{
+		await log(req.user.usuario, "consultar datos", "/"+recurso);
+		const filtro=soloPropios ? filtroPorRol(req) : {};
+		if("id" in req.query){
+			await getMany(coleccion, req, res, filtro);
+		}else{
+			await getList(coleccion, req, res, filtro, permitidos);
 		}
-	}catch{
-		res.sendStatus(500);
+	};
+}
+
+
+
+app.get("/Productos", autenticar(["admin","comercio","consumidor"]), listar("productos", "Productos", ["comercioId"], true));
+
+app.get("/Productos/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
+	const filtro=filtroPorRol(req);
+	filtro.id=Number(req.params.id);
+	await getOne("productos", filtro, res);
+});
+
+app.post("/Productos", autenticar(["admin","comercio"]), async (req, res)=>{
+	const valores=Object.assign({}, req.body);
+	delete valores._id;
+	valores.id=await siguienteId("productos");
+	let comercio;
+	if(req.user.rol=="admin"){
+		comercio=await db.collection("comercios").findOne({id:Number(valores.comercioId)});   
+	}else{
+		comercio=await db.collection("comercios").findOne({owner:req.user.usuario});          
 	}
+	if(!comercio) return res.sendStatus(400);
+	valores.comercioId=comercio.id;
+	valores.owner=comercio.owner;    
+	await createData("productos", valores, res);
 });
 
-async function deleteOne(coleccion, filtro, req, res){
-	let data=await db.collection(coleccion).deleteOne(filtro);
-	res.json(data);
-}
-
-app.delete("/Productos/:id", autenticar("admin","comercio"), async (req, res)=>{
-	await deleteOne("productos", {...filtroPorRol(req), id:Number(req.params.id)}, req, res);
+app.put("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=>{
+	let extra={};
+	if(req.user.rol=="admin" && req.body.comercioId!==undefined){
+		const comercio=await db.collection("comercios").findOne({id:Number(req.body.comercioId)});
+		if(!comercio) return res.sendStatus(400);
+		extra={comercioId:comercio.id, owner:comercio.owner};
+	}else{
+		delete req.body.comercioId;  
+	}
+	await updateData("productos", req, res, filtroPorRol(req), extra);
 });
 
-async function getOne(coleccion, filtro, req, res){
-	let data=await db.collection(coleccion).find(filtro).project({_id:0}).toArray();
-	res.json(data[0]);
-}
-
-app.get("/Productos/:id", autenticar("admin","comercio","consumidor"), async (req, res)=>{
-	await getOne("productos", {...filtroPorRol(req), id:Number(req.params.id)}, req, res);
+app.delete("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=>{
+	const filtro=filtroPorRol(req);
+	filtro.id=Number(req.params.id);
+	await deleteOne("productos", filtro, res);
 });
 
 
-async function updateData(coleccion,  req, res){
-	valores=req.body;
-	valores["id"]=Number(valores["id"]);
-	let data=await db.collection(coleccion).updateOne({"id":valores["id"]},{"$set":valores});
-	data=await db.collection(coleccion).find({"id": valores["id"]}).project({_id:0}).toArray();
-	res.json(data[0]);
 
-}
+app.get("/Comercios", autenticar(["admin","comercio","consumidor"]), listar("comercios", "Comercios", ["categoria","owner"], false));
 
+app.get("/Comercios/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
+	await getOne("comercios", {id:Number(req.params.id)}, res);
+});
 
-app.put("/Productos/:id", autenticar("admin"), async (req, res)=>{
-	await updateData("productos", req, res)
-})
+app.put("/Comercios/:id", autenticar(["admin","comercio"]), async (req, res)=>{
+	await updateData("comercios", req, res, filtroPorRol(req), {});
+});
 
-async function createData(coleccion, valores, req, res){
-	let data=await db.collection(coleccion).insertOne(valores);
-	res.json(data);
-}
+app.delete("/Comercios/:id", autenticar(["admin"]), async (req, res)=>{
+	const id=Number(req.params.id);
+	const comercio=await db.collection("comercios").findOne({id:id});
+	if(!comercio) return res.sendStatus(404);
+	await db.collection("productos").deleteMany({comercioId:id});   
+	await deleteOne("comercios", {id:id}, res);
+});
 
-app.post("/Productos", autenticar("admin","comercio"), async (req, res)=>{
-	let valores=req.body;
-	valores["id"]=Number(valores["id"]);
-	valores["owner"]=req.user.usuario;   // sale del token, no del formulario
-	await createData("productos", valores, req, res);
-})
 
 
 app.post("/registrarse", async (req, res)=>{
-	let user=req.body.username;
-	let pass=req.body.password;
-	let data=await db.collection("usuarios").findOne({"usuario":user});
-	if(data==null){
-		const hash=await argon2.hash(pass, {type:argon2.argon2id, memoryCost: 64*1024, timeCost:3, parallelism:1, saltLength:128});
-		// El rol lo pone el servidor: todos entran como consumidor, sin leer nada del formulario
-		let usuarioAgregar={"usuario":user, "password":hash, "rol":"consumidor"};
-		data=await db.collection("usuarios").insertOne(usuarioAgregar);
-		res.sendStatus(201);
-	}else{
-		res.sendStatus(403);
-	}
-})
+	const user=req.body.username;
+	const pass=req.body.password;
+	if(!esTexto(user) || !esTexto(pass)) return res.sendStatus(400);
+	const existente=await db.collection("usuarios").findOne({usuario:user});
+	if(existente!=null) return res.sendStatus(403);
+	await db.collection("usuarios").insertOne({usuario:user, password:await hashear(pass), rol:"consumidor"});
+	res.sendStatus(201);
+});
 
-app.post("/login", async(req, res)=>{
-	let user=req.body.username;
-	let pass=req.body.password;
-	let data=await db.collection("usuarios").findOne({"usuario":user});
+app.post("/registrarse-comercio", async (req, res)=>{
+	const b=req.body;
+	if(!esTexto(b.username) || !esTexto(b.password) || !esTexto(b.empresa) || !esTexto(b.rfc) || !esTexto(b.ubicacion)){
+		return res.sendStatus(400);
+	}
+	const rfc=b.rfc.toUpperCase().trim();
+	if(!RFC_REGEX.test(rfc)) return res.sendStatus(400);
+	const existente=await db.collection("usuarios").findOne({usuario:b.username});
+	if(existente!=null) return res.sendStatus(403);
+	const repetida=await db.collection("solicitudes").findOne({rfc:rfc, estado:{$in:["pendiente","aprobada"]}});
+	if(repetida!=null) return res.sendStatus(409);
+	
+	await db.collection("usuarios").insertOne({usuario:b.username, password:await hashear(b.password), rol:"consumidor"});
+	await db.collection("solicitudes").insertOne({
+		id:await siguienteId("solicitudes"),
+		usuario:b.username,
+		empresa:b.empresa.trim(),
+		rfc:rfc,                         
+		ubicacion:b.ubicacion.trim(),
+		categoria:typeof b.categoria==="string" ? b.categoria : "",
+		sitioweb:typeof b.sitioweb==="string" ? b.sitioweb : "",
+		estado:"pendiente",
+		fecha:new Date()
+	});
+	res.sendStatus(201);
+});
+
+app.post("/login", async (req, res)=>{
+	const user=req.body.username;
+	const pass=req.body.password;
+	if(!esTexto(user) || !esTexto(pass)) return res.sendStatus(400);
+	const data=await db.collection("usuarios").findOne({usuario:user});
 	if(data==null){
 		res.sendStatus(401);
 	}else if(await argon2.verify(data.password, pass)){
-		let rol=data.rol || "consumidor";
-		let token=jwt.sign({"usuario":data.usuario, "rol":rol}, await process.env.LLAVEJWT, {expiresIn:1000})
-		res.json({"token":token, "id":data.usuario, "rol":rol});
+		const rol=data.rol || "consumidor";
+		const token=jwt.sign({usuario:data.usuario, rol:rol}, process.env.LLAVEJWT, {expiresIn:1000});
+		res.json({token:token, id:data.usuario, rol:rol});
 	}else{
 		res.sendStatus(401);
 	}
-})
+});
 
-// Solo un admin puede cambiar el rol de alguien
-app.put("/usuarios/:usuario/rol", autenticar("admin"), async (req, res)=>{
-	let nuevoRol=req.body.rol;
+app.get("/Solicitudes", autenticar(["admin"]), listar("solicitudes", "Solicitudes", ["estado","usuario"], false));
+
+
+app.put("/Solicitudes/:id", autenticar(["admin"]), async (req, res)=>{
+	const decision=req.body.estado;
+	if(decision!=="aprobada" && decision!=="rechazada") return res.sendStatus(400);
+	const sol=await db.collection("solicitudes").findOne({id:Number(req.params.id), estado:"pendiente"});
+	if(!sol) return res.sendStatus(404);
+	if(decision=="aprobada"){
+		await db.collection("usuarios").updateOne({usuario:sol.usuario}, {$set:{rol:"comercio"}});
+		await db.collection("comercios").insertOne({
+			id:await siguienteId("comercios"),
+			nombre:sol.empresa,
+			categoria:sol.categoria,
+			sitioweb:sol.sitioweb,
+			ubicacion:sol.ubicacion,
+			owner:sol.usuario            
+		});
+	}
+	await db.collection("solicitudes").updateOne({id:sol.id}, {$set:{estado:decision}});
+	await log(req.user.usuario, decision+" solicitud", "/Solicitudes/"+sol.id);
+	const respuesta=Object.assign({}, sol, {estado:decision});
+	delete respuesta._id;
+	res.json(respuesta);
+});
+
+
+app.put("/usuarios/:usuario/rol", autenticar(["admin"]), async (req, res)=>{
+	const nuevoRol=req.body.rol;
 	if(!ROLES_VALIDOS.includes(nuevoRol)){
 		return res.sendStatus(400);
 	}
 	if(req.params.usuario==req.user.usuario){
-		return res.sendStatus(400);   // un admin no se cambia su propio rol
+		return res.sendStatus(400);   
 	}
-	let data=await db.collection("usuarios").updateOne({usuario:req.params.usuario}, {$set:{rol:nuevoRol}});
+	const data=await db.collection("usuarios").updateOne({usuario:req.params.usuario}, {$set:{rol:nuevoRol}});
 	if(data.matchedCount==0){
 		return res.sendStatus(404);
 	}
 	await log(req.user.usuario, "cambiar rol a "+nuevoRol, "/usuarios/"+req.params.usuario);
 	res.sendStatus(200);
-})
+});
 
 /*const options = {
       key: fs.readFileSync('server.key'),
       cert: fs.readFileSync('server.crt')
 };
 
-https.createServer(options, app).listen(3000, async () => {
+https.createServer(options, app).listen(PORT, async () => {
 		await process.loadEnvFile(".env");
 		await connectToDB();
       	console.log('HTTPS Server running on port 3000');
