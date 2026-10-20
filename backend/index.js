@@ -237,6 +237,7 @@ app.post("/registrarse-comercio", async (req, res)=>{
 	if(repetida!=null) return res.sendStatus(409);
 	
 	await db.collection("usuarios").insertOne({usuario:b.username, password:await hashear(b.password), rol:"consumidor"});
+	
 	await db.collection("solicitudes").insertOne({
 		id:await siguienteId("solicitudes"),
 		usuario:b.username,
