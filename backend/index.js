@@ -10,21 +10,21 @@ const https = require('https');
 const app=express();
 let db;
 const PORT=3000;
-const ROLES_VALIDOS=["consumidor","comercio","admin"];
-const RFC_REGEX=/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;   // 3-4 letras + fecha AAMMDD + homoclave
+const ROLES_VALIDOS=["consumidor","comercio","admin"]; // Implementación de IA
+const RFC_REGEX=/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;   // 3-4 letras + fecha AAMMDD + homoclave, Implementación de IA
 app.use(cors());
 app.use(bodyParser.json());
 
 async function connectToDB(){
 	let client=new MongoClient(process.env.DB);
-	await client.connect();
+	await client.connect();	
 	db=client.db();
 	console.log("conectado a la base de datos");
 }
 
 
 async function log(sujeto, accion, objeto){
-	const nuevoLog={};
+	const nuevoLog={};	// Implementación de IA
 	nuevoLog["timestamp"]=new Date();
 	nuevoLog["sujeto"]=sujeto;
 	nuevoLog["accion"]=accion;
@@ -34,20 +34,24 @@ async function log(sujeto, accion, objeto){
 
 
 
+// Implementación de IA
 function hashear(pass){
 	return argon2.hash(pass, {type:argon2.argon2id, memoryCost:64*1024, timeCost:3, parallelism:1, saltLength:128});
 }
 
+// Implementación de IA
 function esTexto(v){
 	return typeof v==="string" && v.trim()!=="";
 }
 
+// Implementación de IA
 async function siguienteId(coleccion){
 	const ultimo=await db.collection(coleccion).find().sort({id:-1}).limit(1).toArray();
 	return ultimo.length ? ultimo[0].id+1 : 1;
 }
 
 
+// Implementación de IA
 function filtroDesdeQuery(query, permitidos){
 	const filtro={};
 	for(let i=0; i<permitidos.length; i++){
@@ -60,6 +64,7 @@ function filtroDesdeQuery(query, permitidos){
 }
 
 
+// Implementación de IA
 function autenticar(rolesPermitidos){
 	return (req, res, next)=>{
 		try{
@@ -75,6 +80,7 @@ function autenticar(rolesPermitidos){
 	};
 }
 
+// Implementación de IA
 function filtroPorRol(req){
 	return req.user.rol=="comercio" ? {owner:req.user.usuario} : {};
 }
@@ -87,16 +93,16 @@ async function getList(coleccion, req, res, filtro, permitidos){
 	sorter[req.query._sort]=req.query._order=="ASC"?1:-1;
 	const inicio=Number(req.query._start);
 	const fin=Number(req.query._end);
-	let data=await db.collection(coleccion).find(consulta).sort(sorter).project({_id:0}).toArray();
+	let data=await db.collection(coleccion).find(consulta).sort(sorter).project({_id:0}).toArray();	// Implementación de IA
 	res.set("Access-Control-Expose-Headers", "X-Total-Count");
 	res.set("X-Total-Count", data.length);
 	res.json(data.slice(inicio, fin));
 }
 
-async function getMany(coleccion, req, res, filtro){
+async function getMany(coleccion, req, res, filtro){	// Implementación de IA
 	const ids=[].concat(req.query.id).map(Number);
 	const consulta=Object.assign({}, filtro);
-	consulta.id={$in:ids};
+	consulta.id={$in:ids};	// Implementación de IA
 	const data=await db.collection(coleccion).find(consulta).project({_id:0}).toArray();
 	res.json(data);
 }
@@ -113,7 +119,7 @@ async function createData(coleccion, valores, res){
 	res.status(201).json(valores);
 }
 
-async function updateData(coleccion, req, res, filtro, extra){
+async function updateData(coleccion, req, res, filtro, extra){	// Implementación de IA
 	const valores=Object.assign({}, req.body);
 	delete valores._id;
 	delete valores.owner;            
@@ -131,11 +137,12 @@ async function updateData(coleccion, req, res, filtro, extra){
 async function deleteOne(coleccion, filtro, res){
 	const data=await db.collection(coleccion).find(filtro).project({_id:0}).toArray();
 	if(data.length==0) return res.sendStatus(404);
-	await db.collection(coleccion).deleteOne(filtro);
+	await db.collection(coleccion).deleteOne(filtro);	// Implementación de IA
 	res.json(data[0]);
 }
 
 
+// Implementación de IA
 function listar(coleccion, recurso, permitidos, soloPropios){
 	return async (req, res)=>{
 		await log(req.user.usuario, "consultar datos", "/"+recurso);
@@ -217,13 +224,16 @@ app.delete("/Comercios/:id", autenticar(["admin"]), async (req, res)=>{
 app.post("/registrarse", async (req, res)=>{
 	const user=req.body.username;
 	const pass=req.body.password;
-	if(!esTexto(user) || !esTexto(pass)) return res.sendStatus(400);
+	const name=req.body.name;
+	const email=req.body.email;
+	if(!esTexto(user) || !esTexto(pass) || !esTexto(name) || !esTexto(email)) return res.sendStatus(400);
 	const existente=await db.collection("usuarios").findOne({usuario:user});
 	if(existente!=null) return res.sendStatus(403);
-	await db.collection("usuarios").insertOne({usuario:user, password:await hashear(pass), rol:"consumidor"});
+	await db.collection("usuarios").insertOne({usuario:user, nombre: name, correo: email, password:await hashear(pass), rol:"consumidor"});
 	res.sendStatus(201);
 });
 
+// Implementación de IA
 app.post("/registrarse-comercio", async (req, res)=>{
 	const b=req.body;
 	if(!esTexto(b.username) || !esTexto(b.password) || !esTexto(b.empresa) || !esTexto(b.rfc) || !esTexto(b.ubicacion)){
@@ -237,7 +247,7 @@ app.post("/registrarse-comercio", async (req, res)=>{
 	if(repetida!=null) return res.sendStatus(409);
 	
 	await db.collection("usuarios").insertOne({usuario:b.username, password:await hashear(b.password), rol:"consumidor"});
-	
+
 	await db.collection("solicitudes").insertOne({
 		id:await siguienteId("solicitudes"),
 		usuario:b.username,
@@ -268,9 +278,11 @@ app.post("/login", async (req, res)=>{
 	}
 });
 
+// Implementación de IA
 app.get("/Solicitudes", autenticar(["admin"]), listar("solicitudes", "Solicitudes", ["estado","usuario"], false));
 
 
+// Implementación de IA
 app.put("/Solicitudes/:id", autenticar(["admin"]), async (req, res)=>{
 	const decision=req.body.estado;
 	if(decision!=="aprobada" && decision!=="rechazada") return res.sendStatus(400);
@@ -295,6 +307,7 @@ app.put("/Solicitudes/:id", autenticar(["admin"]), async (req, res)=>{
 });
 
 
+// Implementación de IA
 app.put("/usuarios/:usuario/rol", autenticar(["admin"]), async (req, res)=>{
 	const nuevoRol=req.body.rol;
 	if(!ROLES_VALIDOS.includes(nuevoRol)){

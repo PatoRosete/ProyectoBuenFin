@@ -1,27 +1,25 @@
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom";
 
-const Registro = () => {
-    // ...tu estado y handleSendData igual que antes...
+const BarraSuperior = () => (
+    <AppBar position="static" color="secondary">
+        <Toolbar>
+            <Typography
+                variant="h6"
+                component={Link}
+                to="/inicio"
+                sx={{ flexGrow: 1, color: "inherit", textDecoration: "none" }}
+            >
+                Buen Fin
+            </Typography>
+            <Button color="inherit" component={Link} to="/login">
+                Iniciar sesión
+            </Button>
+            <Button color="inherit" component={Link} to="/registrarse">
+                Registrarse
+            </Button>
+        </Toolbar>
+    </AppBar>
+);
 
-    return (
-        <Box sx={{ minHeight: "100vh", bgcolor: "grey.100" }}>
-            {/* Barra superior */}
-            <AppBar position="static" color="secondary">
-                <Toolbar>
-                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        Mi App de Productos
-                    </Typography>
-                    <Button color="inherit" component={Link} to="/login">
-                        Iniciar sesión
-                    </Button>
-                </Toolbar>
-            </AppBar>
-
-            {/* Formulario */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
-                {/* ...tu Card con los TextField y el botón... */}
-            </Box>
-        </Box>
-    );
-};
+export default BarraSuperior;

@@ -5,6 +5,8 @@ import {listarProductos, editarProductos, crearProductos} from "./Productos";
 import {listarComercios, editarComercios, crearComercios} from "./Comercios";
 import {dataProvider} from "./dataProvider";
 import Registro from "./registrarse";
+import Inicio from "./Inicio";
+import RegistroComercio from "./registrarse-comercio";
 import authProvider from "./Authprovider";
 import { deepmerge } from '@mui/utils';
 
@@ -139,7 +141,9 @@ export const App = () => (
     create={crearComercios}
 />
  <CustomRoutes noLayout>
+    <Route path="/Inicio" element={<Inicio />}/>
     <Route path="/registrarse" element={<Registro />}/>
+    <Route path="/registrarse-comercio" element={<RegistroComercio />}/>
  </CustomRoutes>
 </Admin>
 
