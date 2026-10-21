@@ -9,9 +9,12 @@ const esMio = (record?: any) => {
 };
 
 const accessControlStrategies: Record<string, Regla> = {
-    admin: () => true,
+    // el admin puede todo menos: postularse (es de consumidores), y crear o editar vacantes (es de cada comercio).
+    // De las vacantes solo puede verlas y borrarlas.
+    admin: ({ resource, action }) =>
+        action !== "postular" && !(resource === "Vacantes" && ["create", "edit"].includes(action)),
     comercio: ({ resource, action, record }) => {
-        if (resource === "Productos") {
+        if (resource === "Productos" || resource === "Vacantes") {
             return ["list", "show", "create"].includes(action)
                 || (["edit", "delete"].includes(action) && esMio(record));
         }
@@ -19,10 +22,17 @@ const accessControlStrategies: Record<string, Regla> = {
             return ["list", "show"].includes(action)
                 || (action === "edit" && esMio(record));
         }
+        if (resource === "Postulaciones") {
+            // ve las de sus vacantes y puede cambiarles el estado
+            return ["list", "show"].includes(action)
+                || (action === "edit" && esMio(record));
+        }
         return false; 
     },
+    // el consumidor no tiene acceso a Postulaciones: solo puede usar el boton "Postularme"
     consumidor: ({ resource, action }) =>
-        ["Productos", "Comercios"].includes(resource) && ["list", "show"].includes(action),
+        (["Productos", "Comercios", "Vacantes"].includes(resource) && ["list", "show"].includes(action))
+        || (resource === "Vacantes" && action === "postular"),
 };
 
 const authProvider : AuthProvider={
