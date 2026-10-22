@@ -1,6 +1,6 @@
-import {Datagrid, List, TextField, Edit, SimpleForm, TextInput, Create, EditButton, DeleteButton, SearchInput} from "react-admin";
-import {Show, SimpleShowLayout, NumberInput, ImageField,ReferenceInput, SelectInput, required} from "react-admin";
-import { useListContext, useRecordContext, RecordContextProvider, usePermissions } from "react-admin";
+import { List, Edit, SimpleForm, TextInput, SearchInput} from "react-admin";
+import { Show } from "react-admin";
+import { useListContext, useRecordContext, RecordContextProvider } from "react-admin";
 import { Box } from "@mui/material";
 import ComercioCard from "./ComercioCard";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";

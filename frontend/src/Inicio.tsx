@@ -67,7 +67,7 @@ const Inicio = () => (
 
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Box
-                        role="img"
+                        component="img" src="/BuenFin.png"
                         aria-label="Imagen de El Buen Fin"
                         sx={{
                             width: "100%",

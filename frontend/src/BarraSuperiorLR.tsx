@@ -1,13 +1,5 @@
 import { AppBar, Toolbar, Typography, Button, Box, IconButton } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from "react-router-dom";
-import * as React from 'react';
-import Menu from '@mui/material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
 
 const BarraSuperior = () => (

@@ -17,7 +17,6 @@ const BotonVerOferta = (_props: { label?: string | false }) => {
             variant="contained"
             href={record.urlOferta}
             target="_blank"                         // se abre en otra pestaña
-            rel="noopener noreferrer"               // seguridad: la otra página no puede controlar la tuya
             endIcon={<OpenInNewIcon />}
             aria-label={`Ver oferta en ${record.empresa} (se abre en una nueva pestaña)`}
         >
