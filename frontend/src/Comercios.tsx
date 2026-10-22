@@ -1,7 +1,10 @@
-import {Datagrid, List, TextField, Edit, SimpleForm, TextInput, Create, EditButton, DeleteButton} from "react-admin";
+import {Datagrid, List, TextField, Edit, SimpleForm, TextInput, Create, EditButton, DeleteButton, SearchInput} from "react-admin";
+
+// Implementación de IA
+const filtros = [<SearchInput key="q" source="q" alwaysOn />];
 
 export const listarComercios = ()=>(
-    <List>
+    <List filters={filtros}>
         <Datagrid>
             <TextField source="id" />
             <TextField source="nombre" />
