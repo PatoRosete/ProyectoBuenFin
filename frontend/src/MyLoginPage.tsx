@@ -30,23 +30,23 @@ export const MyLoginPage = () => {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, bgcolor: "background.paper", 
             boxShadow: 4, borderRadius: 3, p: 7, width: 900, mt: 5, mb:7, ml:31, mr:36, py: { xs: 2, sm: 3 }, }}>
             
-            <Box sx={{ color: "primary.contrastText", fontSize: 30, fontWeight: "bold", textAlign: "center"}}>
+            <Box sx={{ color: "text.primary", fontSize: 30, fontWeight: "bold", textAlign: "center"}}>
                 Bienvenido al Buen Fin
             </Box>
 
             <Divider />
 
-            <Box sx={{ color: "primary.contrastText"}}>
+            <Box sx={{ color: "text.primary"}}>
                 Encuentra las mejores ofertas del Buen Fin.
             </Box>
 
-            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+            <Box sx={{ color: "text.primary", fontWeight: "bold"}}>
                 Usuario:
             </Box>
 
             <TextField variant="outlined" id="username" label="Usuario" name="username" value={datos.username} onChange={handleChange} />
 
-            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+            <Box sx={{ color: "text.primary", fontWeight: "bold"}}>
                 Contraseña:
             </Box>
             <TextField variant="outlined" type="password" label="Contraseña" id="password" name="password" value={datos.password}  onChange={handleChange}/>
@@ -57,7 +57,7 @@ export const MyLoginPage = () => {
             </Button>
 
 
-            <Divider sx={{ color: "primary.contrastText" }}>
+            <Divider sx={{ color: "text.primary" }}>
                 ¿Aún no tienes cuenta?
             </Divider>
 
@@ -65,11 +65,11 @@ export const MyLoginPage = () => {
                 Crear una cuenta
             </Button>
 
-            <Box sx={{ color: "primary.contrastText", textAlign: "center"}}>
+            <Box sx={{ color: "text.primary", textAlign: "center"}}>
                 ¿Eres empresa? Regístrala aquí
             </Box>
 
-            <Button variant="outlined" component={Link} to="/registrarse" >
+            <Button variant="outlined" component={Link} to="/registrarse-comercio" >
                 Registro de comercio
             </Button>
 

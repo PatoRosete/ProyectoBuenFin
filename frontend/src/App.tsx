@@ -2,13 +2,14 @@ import { Admin, Resource, CustomRoutes, radiantLightTheme, radiantDarkTheme } fr
 import { Layout } from "./Layout";
 import {Route} from  "react-router-dom";
 import {listarProductos, editarProductos, crearProductos} from "./Productos";
-import {listarComercios, editarComercios, crearComercios} from "./Comercios";
+import {listarComercios, editarComercios } from "./Comercios";
 import {listarVacantes, editarVacantes, crearVacantes} from "./Vacantes";
 import {listarPostulaciones, editarPostulaciones} from "./Postulaciones";
 import {dataProvider} from "./dataProvider";
 import Registro from "./registrarse";
 import Inicio from "./Inicio";
 import RegistroComercio from "./registrarse-comercio";
+import { listarSolicitudes } from "./Solicitudes";
 import authProvider from "./Authprovider";
 import { deepmerge } from '@mui/utils';
 import { MyLoginPage } from './MyLoginPage';
@@ -170,6 +171,12 @@ loginPage={MyLoginPage} >
     list={listarPostulaciones}
     edit={editarPostulaciones}
 />
+
+  <Resource 
+     name="Solicitudes"
+     list={listarSolicitudes}
+     />
+
  <CustomRoutes noLayout>
     <Route path="/Inicio" element={<Inicio />}/>
     <Route path="/registrarse" element={<Registro />}/>

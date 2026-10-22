@@ -340,26 +340,24 @@ app.delete("/Postulaciones/:id", autenticar(["admin"]), async (req, res)=>{
 app.post("/registrarse", async (req, res)=>{
 	const name=req.body.name;
 	const lastname=req.body.lastname;
-	const telef=req.body.telefono;
-	const puesto=req.body.puesto;
 	const email=req.body.email;
 	const user=req.body.username;
 	const pass=req.body.password;
 
-	if(!esTexto(name) || !esTexto(lastname) || !esTexto(telef) 
-	|| !esTexto(puesto) || !esTexto(email)|| !esTexto(user)
+	if(!esTexto(name) || !esTexto(lastname)  || !esTexto(email)|| !esTexto(user)
 	|| !esTexto(pass)) return res.sendStatus(400);
 	const existente=await db.collection("usuarios").findOne({usuario:user});
 	if(existente!=null) return res.sendStatus(403);
-	await db.collection("usuarios").insertOne({ nombre: name, apellido: lastname, telefono: telef,
-	puesto: puesto, correo: email, usuario:user, password:await hashear(pass), rol:"consumidor"});
+	await db.collection("usuarios").insertOne({ nombre: name, apellido: lastname,
+	correo: email, usuario:user, password:await hashear(pass), rol:"consumidor"});
 	res.sendStatus(201);
 });
 
 // Implementación de IA
 app.post("/registrarse-comercio", async (req, res)=>{
 	const b=req.body;
-	if(!esTexto(b.username) || !esTexto(b.password) || !esTexto(b.empresa) || !esTexto(b.rfc) || !esTexto(b.ubicacion)){
+	if(!esTexto(b.name)|| !esTexto(b.telephone)|| !esTexto(b.puesto) || !esTexto(b.username) || !esTexto(b.password)
+		|| !esTexto(b.email) || !esTexto(b.empresa) || !esTexto(b.rfc) || !esTexto(b.ubicacion)){
 		return res.sendStatus(400);
 	}
 	const rfc=b.rfc.toUpperCase().trim();
@@ -374,6 +372,10 @@ app.post("/registrarse-comercio", async (req, res)=>{
 	await db.collection("solicitudes").insertOne({
 		id:await siguienteId("solicitudes"),
 		usuario:b.username,
+		responsable:b.name.trim(),
+		telefono:b.telephone.trim(),
+		puesto:b.puesto.trim(),
+		correo:b.email.trim().toLowerCase(),
 		empresa:b.empresa.trim(),
 		rfc:rfc,                         
 		ubicacion:b.ubicacion.trim(),
@@ -417,6 +419,7 @@ app.put("/Solicitudes/:id", autenticar(["admin"]), async (req, res)=>{
 			id:await siguienteId("comercios"),
 			nombre:sol.empresa,
 			categoria:sol.categoria,
+			descripcion:sol.descripcion,
 			sitioweb:sol.sitioweb,
 			ubicacion:sol.ubicacion,
 			owner:sol.usuario            
