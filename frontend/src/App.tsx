@@ -3,6 +3,8 @@ import { Layout } from "./Layout";
 import {Route} from  "react-router-dom";
 import {listarProductos, editarProductos, crearProductos} from "./Productos";
 import {listarComercios, editarComercios, crearComercios} from "./Comercios";
+import {listarVacantes, editarVacantes, crearVacantes} from "./Vacantes";
+import {listarPostulaciones, editarPostulaciones} from "./Postulaciones";
 import {dataProvider} from "./dataProvider";
 import Registro from "./registrarse";
 import Inicio from "./Inicio";
@@ -154,6 +156,19 @@ loginPage={MyLoginPage} >
     name="Comercios"
     list={listarComercios}
     edit={editarComercios}
+/>
+
+ <Resource
+    name="Vacantes"
+    list={listarVacantes}
+    edit={editarVacantes}
+    create={crearVacantes}
+/>
+
+ <Resource
+    name="Postulaciones"
+    list={listarPostulaciones}
+    edit={editarPostulaciones}
 />
  <CustomRoutes noLayout>
     <Route path="/Inicio" element={<Inicio />}/>
