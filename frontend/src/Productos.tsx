@@ -1,4 +1,4 @@
-import {Datagrid, List, Show, SimpleShowLayout, NumberInput, ImageField,TextField, ReferenceInput, Edit, SimpleForm, TextInput, Create, EditButton, DeleteButton, SelectInput, SearchInput, required} from "react-admin";
+import { List, Show, NumberInput,  ReferenceInput, Edit, SimpleForm, TextInput, Create,  SelectInput, SearchInput, required} from "react-admin";
 import { useListContext, useRecordContext, RecordContextProvider, usePermissions } from "react-admin";
 import { Box } from "@mui/material";
 import ProductoCard from "./ProductoCard";
@@ -111,7 +111,6 @@ const DetalleProducto = () => {
     const precio = Number(p.precio);
     const oferta = Number(p.precioOferta);
     const ahorro = precio - oferta;
-    const porcentaje = precio ? Math.round((ahorro * 100) / precio) : 0;
 
     return (
         <Grid container spacing={4} sx={{ p: { xs: 2, md: 4 } }}>
@@ -151,7 +150,7 @@ const DetalleProducto = () => {
                                     ${oferta.toLocaleString("es-MX")}
                                 </Typography>
                                 <Typography color="success.main" sx={{ fontWeight: "bold" }}>
-                                    Ahorras ${ahorro.toLocaleString("es-MX")} ({porcentaje}%)
+                                    Ahorras ${ahorro.toLocaleString("es-MX")}
                                 </Typography>
                             </>
                         ) : (

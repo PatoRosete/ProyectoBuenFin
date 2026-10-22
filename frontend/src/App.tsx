@@ -21,7 +21,8 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { i18nProvider } from './i18nProvider';
-//import { Configuracion, aplicarAjustes } from "./Configuracion";
+import { Configuracion } from "./Configuracion";
+import AccessibilityNewIcon from "@mui/icons-material/AccessibilityNew";
 
 const fuente = "'Poppins', sans-serif";
 const variantes = ["h1","h2","h3","h4","h5","h6","subtitle1","subtitle2", "body1","body2","button","caption","overline"];
@@ -201,11 +202,17 @@ loginPage={MyLoginPage} >
     options={{ label: "Mi wishlist" }}
  />
 
+ <Resource
+    name="configuracion"
+    list={Configuracion}
+    icon={AccessibilityNewIcon}
+    options={{ label: "Accesibilidad" }}
+/>
+
  <CustomRoutes noLayout>
     <Route path="/Inicio" element={<Inicio />}/>
     <Route path="/registrarse" element={<Registro />}/>
     <Route path="/registrarse-comercio" element={<RegistroComercio />}/>
-     
  </CustomRoutes>
 </Admin>
 

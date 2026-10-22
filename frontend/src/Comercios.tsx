@@ -1,4 +1,4 @@
-import { List, Edit, SimpleForm, TextInput, SearchInput} from "react-admin";
+import { List, Edit, SimpleForm, TextInput, SearchInput, SelectInput} from "react-admin";
 import { Show } from "react-admin";
 import { useListContext, useRecordContext, RecordContextProvider } from "react-admin";
 import { Box } from "@mui/material";
@@ -8,7 +8,9 @@ import { Grid, Typography, Chip, Stack } from "@mui/material";
 import { Button as MuiButton } from "@mui/material";
 
 // Implementación de IA
-const filtros = [<SearchInput key="q" source="q" alwaysOn />];
+const filtros = [
+    <SearchInput key="q" source="q" alwaysOn />,
+];
 
 // Implementación de IA: redirige a la página de la oferta en la tienda (RF-12)
 const BotonVisitarTienda= (_props: { label?: string | false }) => {
@@ -83,7 +85,7 @@ const DetalleComercio = () => {
                     sx={{
                         width: "100%",
                         maxHeight: 450,
-                        objectFit: c.logo ? "cover" : "contain",
+                        objectFit: c.imagen ? "cover" : "contain",
                         borderRadius: 3,
                         bgcolor: "background.default",
                     }}
@@ -100,7 +102,7 @@ const DetalleComercio = () => {
 
                     {c.descripcion && <Typography>{c.descripcion}</Typography>}
 
-                    {c.ubicacion && <Typography>{c.ubicacion}</Typography>}
+                    {c.ubicacion && <Typography>📍{c.ubicacion}</Typography>}
 
 
 
