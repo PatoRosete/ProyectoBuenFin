@@ -1,39 +1,121 @@
 import {Datagrid, List, TextField, Edit, SimpleForm, TextInput, Create, EditButton, DeleteButton, SearchInput} from "react-admin";
+import {Show, SimpleShowLayout, NumberInput, ImageField,ReferenceInput, SelectInput, required} from "react-admin";
+import { useListContext, useRecordContext, RecordContextProvider, usePermissions } from "react-admin";
+import { Box } from "@mui/material";
+import ComercioCard from "./ComercioCard";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { Grid, Typography, Chip, Stack } from "@mui/material";
+import { Button as MuiButton } from "@mui/material";
 
 // Implementación de IA
 const filtros = [<SearchInput key="q" source="q" alwaysOn />];
 
-export const listarComercios = ()=>(
+// Implementación de IA: redirige a la página de la oferta en la tienda (RF-12)
+const BotonVisitarTienda= (_props: { label?: string | false }) => {
+    const record = useRecordContext();
+    if (!record?.sitioweb) return null;            // si el producto no tiene link, no se muestra
+
+    return (
+        <MuiButton
+            variant="contained"
+            href={record.sitioweb} 
+            target="_blank"                         // se abre en otra pestaña
+            rel="noopener noreferrer"               // seguridad: la otra página no puede controlar la tuya
+            endIcon={<OpenInNewIcon />}
+            aria-label={`Ver oferta en ${record.empresa} (se abre en una nueva pestaña)`}
+        >
+            Visitar tienda de {record.nombre}
+        </MuiButton>
+    );
+};
+
+const CuadriculaComercios = () => {
+    const { data } = useListContext();   // los productos de la página actual
+    if (!data) return null;
+
+    return (
+        <Box sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+            gap: 2,
+            p: 2,
+        }}>
+            {data.map(comercio => (
+                <RecordContextProvider key={comercio.id} value={comercio}>
+                    <ComercioCard />
+                </RecordContextProvider>
+            ))}
+        </Box>
+    );
+};
+
+export const listarComercios = () => (
     <List filters={filtros}>
-        <Datagrid>
-            <TextField source="id" />
-            <TextField source="nombre" />
-            <TextField source="categoria" />
-            <TextField source="sitioweb" />
-            <EditButton />
-            <DeleteButton />
-        </Datagrid>
+        <CuadriculaComercios />
     </List>
 );
 
 export const editarComercios = ()=>(
     <Edit>
         <SimpleForm>
-            <TextInput source="id" />
+            <TextInput disabled source = "id" label = 'ID'/>
             <TextInput source="nombre" />
             <TextInput source="categoria" />
             <TextInput source="sitioweb" />
+            <TextInput source="imagen" />
+            <TextInput source="ubicacion" />
+            <TextInput source="descripcion" multiline />
         </SimpleForm>
     </Edit>
 );
 
-export const crearComercios = ()=>(
-    <Create>
-        <SimpleForm>
-            <TextInput source="id" />
-            <TextInput source="nombre" />
-            <TextInput source="categoria" />
-            <TextInput source="sitioweb" />
-        </SimpleForm>
-    </Create>
+const DetalleComercio = () => {
+    const c = useRecordContext();
+    if (!c) return null;
+
+    return (
+        <Grid container spacing={4} sx={{ p: { xs: 2, md: 4 } }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+                <Box
+                    component="img"
+                    src={c.imagen}
+                    alt={c.nombre}
+                    sx={{
+                        width: "100%",
+                        maxHeight: 450,
+                        objectFit: c.logo ? "cover" : "contain",
+                        borderRadius: 3,
+                        bgcolor: "background.default",
+                    }}
+                />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+                <Stack spacing={2}>
+                    <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
+                        {c.nombre}
+                    </Typography>
+
+                    <Chip label={c.categoria} color="primary" variant="outlined" sx={{ alignSelf: "flex-start" }} />
+
+                    {c.descripcion && <Typography>{c.descripcion}</Typography>}
+
+                    {c.ubicacion && <Typography>{c.ubicacion}</Typography>}
+
+
+
+
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                        <BotonVisitarTienda />
+                    </Stack>
+                </Stack>
+            </Grid>
+        </Grid>
+    );
+};
+
+export const mostrarComercios = () => (
+    <Show title="Detalle del comercio">
+        <DetalleComercio />
+    </Show>
 );

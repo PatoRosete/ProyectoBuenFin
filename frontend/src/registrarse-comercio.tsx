@@ -4,12 +4,11 @@ import { Link } from "react-router-dom";
 import BarraSuperiorLR from "./BarraSuperiorLR";
 import { useNotify} from 'react-admin';
 import { useNavigate } from "react-router-dom";
-const SECTORES = ["Comercio", "Servicios", "Industria", "Alimentos y bebidas", "Tecnología", "Moda", "Hogar", "Salud y belleza", "Otro"];
-
+const SECTORES = ["Tecnología","Electrodomésticos","Línea blanca","Moda y calzado","Muebles","Autoservicio","Artículos para el hogar", "Otro"];
 const RegistroComercio: React.FC =()=>{
 
     const [datos, setDatos]=useState({name:"", telephone:"", puesto: "",
-    email:"", empresa: "", rfc: "", ubicacion: "", categoria: "", sitioweb: "", username:"", password:""});
+    email:"", empresa: "", rfc: "", ubicacion: "", categoria: "", sitioweb: "", username:"", password:"", descripcion:""});
 
     const navigate = useNavigate();
     const notify = useNotify(); 
@@ -120,6 +119,13 @@ const RegistroComercio: React.FC =()=>{
                     <MenuItem key={s} value={s}>{s}</MenuItem>
                 ))}
             </TextField>
+
+            <Box sx={{ color: "text.primary", fontWeight: "bold"}}>
+                Descripción:
+            </Box>
+
+            <TextField multiline variant="outlined" required id="descripcion" label="Ingresa una breve descripción de tu empresa" name="descripcion" value={datos.descripcion} onChange={handleChange} />
+
 
             <Box sx={{ color: "text.primary", fontWeight: "bold"}}>
                 Sitio Web:

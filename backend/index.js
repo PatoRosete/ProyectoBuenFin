@@ -23,7 +23,6 @@ async function connectToDB(){
 	console.log("conectado a la base de datos");
 }
 
-
 async function crearAdminInicial(){
 	const existe=await db.collection("usuarios").findOne({usuario:process.env.ADMIN_USER});
 	if(existe==null){
@@ -44,8 +43,6 @@ async function log(sujeto, accion, objeto){
 	await db.collection("log").insertOne(nuevoLog);
 }
 
-
-
 function hashear(pass){
 	return argon2.hash(pass, {type:argon2.argon2id, memoryCost:64*1024, timeCost:3, parallelism:1, saltLength:128});
 }
@@ -61,7 +58,6 @@ async function siguienteId(coleccion){
 	return ultimo.length ? ultimo[0].id+1 : 1;
 }
 
-
 // Implementación de IA
 function filtroDesdeQuery(query, permitidos){
 	const filtro={};
@@ -73,7 +69,6 @@ function filtroDesdeQuery(query, permitidos){
 	}
 	return filtro;
 }
-
 
 // Implementación de IA
 function autenticar(rolesPermitidos){
@@ -95,8 +90,6 @@ function autenticar(rolesPermitidos){
 function filtroPorRol(req){
 	return req.user.rol=="comercio" ? {owner:req.user.usuario} : {};
 }
-
-
 
 async function getList(coleccion, req, res, filtro, permitidos){
 	const consulta=Object.assign({}, filtroDesdeQuery(req.query, permitidos), filtro);   
@@ -170,9 +163,6 @@ function listar(coleccion, recurso, permitidos, soloPropios){
 	};
 }
 
-
-
-
 app.get("/Productos", autenticar(["admin","comercio","consumidor"]), listar("productos", "Productos", ["comercioId", "categoria"], true));
 
 app.get("/Productos/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
@@ -222,8 +212,6 @@ app.delete("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=
 	await deleteOne("productos", filtro, res);
 });
 
-
-
 app.get("/Comercios", autenticar(["admin","comercio","consumidor"]), listar("comercios", "Comercios", ["categoria","owner"], false));
 
 app.get("/Comercios/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
@@ -249,8 +237,6 @@ app.delete("/Comercios/:id", autenticar(["admin"]), async (req, res)=>{
 	await db.collection("vacantes").deleteMany({comercioId:id});   
 	await deleteOne("comercios", {id:id}, res);
 });
-
-
 
 // Implementación de IA
 // Vacantes: todos las leen, el comercio solo ve y toca las suyas, el admin solo las ve y las borra
@@ -357,8 +343,6 @@ app.delete("/Postulaciones/:id", autenticar(["admin"]), async (req, res)=>{
 	await deleteOne("postulaciones", {id:Number(req.params.id)}, res);
 });
 
-
-
 // Implementación de IA
 // Wishlist: solo para consumidores; cada uno ve y toca unicamente lo suyo
 app.get("/Wishlist", autenticar(["consumidor"]), async (req, res)=>{
@@ -415,7 +399,7 @@ app.post("/registrarse", async (req, res)=>{
 app.post("/registrarse-comercio", async (req, res)=>{
 	const b=req.body;
 	if(!esTexto(b.name)|| !esTexto(b.telephone)|| !esTexto(b.puesto) || !esTexto(b.username) || !esTexto(b.password)
-		|| !esTexto(b.email) || !esTexto(b.empresa) || !esTexto(b.rfc) || !esTexto(b.ubicacion)){
+		|| !esTexto(b.email) || !esTexto(b.empresa) || !esTexto(b.descripcion) || !esTexto(b.rfc) || !esTexto(b.ubicacion)){
 		return res.sendStatus(400);
 	}
 	const rfc=b.rfc.toUpperCase().trim();
@@ -438,6 +422,7 @@ app.post("/registrarse-comercio", async (req, res)=>{
 		rfc:rfc,                         
 		ubicacion:b.ubicacion.trim(),
 		categoria:typeof b.categoria==="string" ? b.categoria : "",
+		descripcion:typeof b.descripcion==="string" ? b.descripcion : "",
 		sitioweb:typeof b.sitioweb==="string" ? b.sitioweb : "",
 		estado:"pendiente",
 		fecha:new Date()
@@ -494,6 +479,11 @@ app.put("/Solicitudes/:id", autenticar(["admin"]), async (req, res)=>{
 	res.json(respuesta);
 });
 
+// Implementación de IA: ver el detalle de una solicitud (solo admin)
+app.get("/Solicitudes/:id", autenticar(["admin"]), async (req, res)=>{
+	await log(req.user.usuario, "consultar dato", "/Solicitudes/"+req.params.id);
+	await getOne("solicitudes", {id:Number(req.params.id)}, res);
+});
 
 // Implementación de IA
 app.put("/usuarios/:usuario/rol", autenticar(["admin"]), async (req, res)=>{

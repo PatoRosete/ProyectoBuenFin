@@ -44,7 +44,7 @@ const BotonFavorito = () => {
 
     return (
         <Button
-            label={guardado ? "Quitar de wishlist" : "Guardar"}
+            label={guardado ? "Guardado" : "Guardar"}
             onClick={alternar}
             disabled={creando || quitando}
         >

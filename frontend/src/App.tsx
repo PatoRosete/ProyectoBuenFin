@@ -1,8 +1,8 @@
 import { Admin, Resource, CustomRoutes, radiantLightTheme, radiantDarkTheme } from "react-admin";
 import { Layout } from "./Layout";
 import {Route} from  "react-router-dom";
-import {listarProductos, editarProductos, crearProductos} from "./Productos";
-import {listarComercios, editarComercios } from "./Comercios";
+import {listarProductos, editarProductos, crearProductos, mostrarProductos} from "./Productos";
+import {listarComercios, editarComercios, mostrarComercios } from "./Comercios";
 import {listarVacantes, editarVacantes, crearVacantes} from "./Vacantes";
 import {listarPostulaciones, editarPostulaciones} from "./Postulaciones";
 import {listarWishlist} from "./Wishlist";
@@ -10,7 +10,7 @@ import {dataProvider} from "./dataProvider";
 import Registro from "./registrarse";
 import Inicio from "./Inicio";
 import RegistroComercio from "./registrarse-comercio";
-import { listarSolicitudes } from "./Solicitudes";
+import { listarSolicitudes, mostrarSolicitudes } from "./Solicitudes";
 import authProvider from "./Authprovider";
 import { deepmerge } from '@mui/utils';
 import { MyLoginPage } from './MyLoginPage';
@@ -152,12 +152,14 @@ loginPage={MyLoginPage} >
     list={listarProductos}
     edit={editarProductos}
     create={crearProductos}
+    show={mostrarProductos}
  />
 
  <Resource
     name="Comercios"
     list={listarComercios}
     edit={editarComercios}
+    show={mostrarComercios}
 />
 
  <Resource
@@ -176,6 +178,7 @@ loginPage={MyLoginPage} >
   <Resource 
      name="Solicitudes"
      list={listarSolicitudes}
+     show={mostrarSolicitudes}
      />
 
  <Resource
