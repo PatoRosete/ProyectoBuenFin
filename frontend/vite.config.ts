@@ -7,11 +7,10 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   server: {
     host: true,
-    /*
-     https: {
-      key:fs.readFileSync("./frontend.key"),
-      cert: fs.readFileSync("./frontend.crt")
-    }*/
+    https: {
+      key: fs.readFileSync("./frontend.key"),
+      cert: fs.readFileSync("./frontend.crt"),
+    },
   },
   build: {
     sourcemap: mode === "development",

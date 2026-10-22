@@ -179,6 +179,7 @@ app.get("/Productos", autenticar(["admin","comercio","consumidor"]), listar("pro
 app.get("/Productos/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
 	const filtro=filtroPorRol(req);
 	filtro.id=Number(req.params.id);
+	await log(req.user.usuario, "consultar dato", "/Productos/"+req.params.id);
 	await getOne("productos", filtro, res);
 });
 
@@ -195,6 +196,7 @@ app.post("/Productos", autenticar(["admin","comercio"]), async (req, res)=>{
 	if(!comercio) return res.sendStatus(400);
 	valores.comercioId=comercio.id;
 	valores.owner=comercio.owner;    
+	await log(req.user.usuario, "crear dato", "/Productos");
 	await createData("productos", valores, res);
 });
 
@@ -207,12 +209,14 @@ app.put("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=>{
 	}else{
 		delete req.body.comercioId;  
 	}
+	await log(req.user.usuario, "actualizar dato", "/Productos/"+req.params.id);
 	await updateData("productos", req, res, filtroPorRol(req), extra);
 });
 
 app.delete("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=>{
 	const filtro=filtroPorRol(req);
 	filtro.id=Number(req.params.id);
+	await log(req.user.usuario, "borrar dato", "/Productos/"+req.params.id);
 	await deleteOne("productos", filtro, res);
 });
 
@@ -221,10 +225,12 @@ app.delete("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=
 app.get("/Comercios", autenticar(["admin","comercio","consumidor"]), listar("comercios", "Comercios", ["categoria","owner"], false));
 
 app.get("/Comercios/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
+	await log(req.user.usuario, "consultar dato", "/Comercios/"+req.params.id);
 	await getOne("comercios", {id:Number(req.params.id)}, res);
 });
 
 app.put("/Comercios/:id", autenticar(["admin","comercio"]), async (req, res)=>{
+	await log(req.user.usuario, "actualizar dato", "/Comercios/"+req.params.id);
 	await updateData("comercios", req, res, filtroPorRol(req), {});
 });
 
@@ -232,6 +238,7 @@ app.delete("/Comercios/:id", autenticar(["admin"]), async (req, res)=>{
 	const id=Number(req.params.id);
 	const comercio=await db.collection("comercios").findOne({id:id});
 	if(!comercio) return res.sendStatus(404);
+	await log(req.user.usuario, "borrar dato", "/Comercios/"+id);
 	await db.collection("productos").deleteMany({comercioId:id});
 	const vacantes=await db.collection("vacantes").find({comercioId:id}).toArray();   // Implementación de IA
 	await db.collection("postulaciones").deleteMany({vacanteId:{$in:vacantes.map(v=>v.id)}});
@@ -248,6 +255,7 @@ app.get("/Vacantes", autenticar(["admin","comercio","consumidor"]), listar("vaca
 app.get("/Vacantes/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
 	const filtro=filtroPorRol(req);
 	filtro.id=Number(req.params.id);
+	await log(req.user.usuario, "consultar dato", "/Vacantes/"+req.params.id);
 	await getOne("vacantes", filtro, res);
 });
 
@@ -262,6 +270,7 @@ app.post("/Vacantes", autenticar(["comercio"]), async (req, res)=>{
 	valores.owner=comercio.owner;
 	valores.empresa=comercio.nombre;   // la empresa sale del comercio, no se escribe a mano
 	valores.fecha=new Date();
+	await log(req.user.usuario, "crear dato", "/Vacantes");
 	await createData("vacantes", valores, res);
 });
 
@@ -270,6 +279,7 @@ app.put("/Vacantes/:id", autenticar(["comercio"]), async (req, res)=>{
 	delete req.body.empresa;
 	delete req.body.fecha;
 	delete req.body.comercioId;   // una vacante no cambia de comercio
+	await log(req.user.usuario, "actualizar dato", "/Vacantes/"+req.params.id);
 	await updateData("vacantes", req, res, filtroPorRol(req), {});
 });
 
@@ -278,6 +288,7 @@ app.delete("/Vacantes/:id", autenticar(["admin","comercio"]), async (req, res)=>
 	filtro.id=Number(req.params.id);
 	const vacante=await db.collection("vacantes").findOne(filtro);
 	if(!vacante) return res.sendStatus(404);
+	await log(req.user.usuario, "borrar dato", "/Vacantes/"+req.params.id);
 	await db.collection("postulaciones").deleteMany({vacanteId:vacante.id});   // se van sus postulaciones
 	await deleteOne("vacantes", filtro, res);
 });
@@ -303,6 +314,7 @@ app.get("/Postulaciones", autenticar(["admin","comercio","consumidor"]), async (
 app.get("/Postulaciones/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
 	const filtro=filtroPostulaciones(req);
 	filtro.id=Number(req.params.id);
+	await log(req.user.usuario, "consultar dato", "/Postulaciones/"+req.params.id);
 	await getOne("postulaciones", filtro, res);
 });
 
@@ -337,6 +349,7 @@ app.put("/Postulaciones/:id", autenticar(["admin","comercio"]), async (req, res)
 });
 
 app.delete("/Postulaciones/:id", autenticar(["admin"]), async (req, res)=>{
+	await log(req.user.usuario, "borrar dato", "/Postulaciones/"+req.params.id);
 	await deleteOne("postulaciones", {id:Number(req.params.id)}, res);
 });
 
@@ -355,6 +368,7 @@ app.post("/registrarse", async (req, res)=>{
 	if(existente!=null) return res.sendStatus(403);
 	await db.collection("usuarios").insertOne({ nombre: name, apellido: lastname,
 	correo: email, usuario:user, password:await hashear(pass), rol:"consumidor"});
+	await log(user, "registrarse", "/registrarse");
 	res.sendStatus(201);
 });
 
@@ -389,6 +403,7 @@ app.post("/registrarse-comercio", async (req, res)=>{
 		estado:"pendiente",
 		fecha:new Date()
 	});
+	await log(b.username, "solicitar registro de comercio", "/registrarse-comercio");
 	res.sendStatus(201);
 });
 
@@ -398,12 +413,15 @@ app.post("/login", async (req, res)=>{
 	if(!esTexto(user) || !esTexto(pass)) return res.sendStatus(400);
 	const data=await db.collection("usuarios").findOne({usuario:user});
 	if(data==null){
+		await log(user, "intento de sesión fallido", "/login");
 		res.sendStatus(401);
 	}else if(await argon2.verify(data.password, pass)){
 		const rol=data.rol || "consumidor";
 		const token=jwt.sign({usuario:data.usuario, rol:rol}, process.env.LLAVEJWT, {expiresIn:1000});
+		await log(user, "inicio de sesión", "/login");
 		res.json({token:token, id:data.usuario, rol:rol});
 	}else{
+		await log(user, "intento de sesión fallido", "/login");
 		res.sendStatus(401);
 	}
 });
@@ -455,7 +473,7 @@ app.put("/usuarios/:usuario/rol", autenticar(["admin"]), async (req, res)=>{
 	res.sendStatus(200);
 });
 
-/*const options = {
+const options = {
       key: fs.readFileSync('server.key'),
       cert: fs.readFileSync('server.crt')
 };
@@ -463,13 +481,14 @@ app.put("/usuarios/:usuario/rol", autenticar(["admin"]), async (req, res)=>{
 https.createServer(options, app).listen(PORT, async () => {
 		await process.loadEnvFile(".env");
 		await connectToDB();
+		await crearAdminInicial();
       	console.log('HTTPS Server running on port 3000');
-});*/
+});
 
 
-app.listen(PORT,async ()=>{
+/*app.listen(PORT,async ()=>{
 	await process.loadEnvFile(".env")
 	await connectToDB();
 	await crearAdminInicial();
 	console.log("aplicacion iniciada en puerto 3000")
-});
+});*/
