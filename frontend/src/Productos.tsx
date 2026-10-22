@@ -1,4 +1,5 @@
 import {Datagrid, List, TextField, Edit, SimpleForm, TextInput, Create, EditButton, DeleteButton, SelectInput, SearchInput, required} from "react-admin";
+import FavoritoButton from "./Favoritobutton";
 
 // Implementación de IA
 // Categorias de los productos (las mismas para filtrar y para elegir al crear o editar)
@@ -19,6 +20,7 @@ export const listarProductos = ()=>(
             <TextField source="categoria" />
             <EditButton />
             <DeleteButton />
+            <FavoritoButton />
         </Datagrid>
     </List>
 );

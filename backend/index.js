@@ -46,7 +46,6 @@ async function log(sujeto, accion, objeto){
 
 
 
-// Implementación de IA
 function hashear(pass){
 	return argon2.hash(pass, {type:argon2.argon2id, memoryCost:64*1024, timeCost:3, parallelism:1, saltLength:128});
 }
@@ -216,6 +215,9 @@ app.put("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=>{
 app.delete("/Productos/:id", autenticar(["admin","comercio"]), async (req, res)=>{
 	const filtro=filtroPorRol(req);
 	filtro.id=Number(req.params.id);
+	const producto=await db.collection("productos").findOne(filtro);   // Implementación de IA
+	if(!producto) return res.sendStatus(404);
+	await db.collection("wishlist").deleteMany({productoId:producto.id});   // sale de las wishlist
 	await log(req.user.usuario, "borrar dato", "/Productos/"+req.params.id);
 	await deleteOne("productos", filtro, res);
 });
@@ -239,6 +241,8 @@ app.delete("/Comercios/:id", autenticar(["admin"]), async (req, res)=>{
 	const comercio=await db.collection("comercios").findOne({id:id});
 	if(!comercio) return res.sendStatus(404);
 	await log(req.user.usuario, "borrar dato", "/Comercios/"+id);
+	const productos=await db.collection("productos").find({comercioId:id}).toArray();   // Implementación de IA
+	await db.collection("wishlist").deleteMany({productoId:{$in:productos.map(p=>p.id)}});
 	await db.collection("productos").deleteMany({comercioId:id});
 	const vacantes=await db.collection("vacantes").find({comercioId:id}).toArray();   // Implementación de IA
 	await db.collection("postulaciones").deleteMany({vacanteId:{$in:vacantes.map(v=>v.id)}});
@@ -354,6 +358,41 @@ app.delete("/Postulaciones/:id", autenticar(["admin"]), async (req, res)=>{
 });
 
 
+
+// Implementación de IA
+// Wishlist: solo para consumidores; cada uno ve y toca unicamente lo suyo
+app.get("/Wishlist", autenticar(["consumidor"]), async (req, res)=>{
+	await log(req.user.usuario, "consultar datos", "/Wishlist");
+	const filtro={usuario:req.user.usuario};
+	if("id" in req.query){
+		await getMany("wishlist", req, res, filtro);
+	}else{
+		await getList("wishlist", req, res, filtro, ["productoId"]);
+	}
+});
+
+// El boton solo manda productoId; todo lo demas lo pone el servidor
+app.post("/Wishlist", autenticar(["consumidor"]), async (req, res)=>{
+	const producto=await db.collection("productos").findOne({id:Number(req.body.productoId)});
+	if(!producto) return res.sendStatus(404);
+	const repetido=await db.collection("wishlist").findOne({productoId:producto.id, usuario:req.user.usuario});
+	if(repetido!=null) return res.sendStatus(409);   // un producto solo una vez por usuario
+	const valores={
+		id:await siguienteId("wishlist"),
+		productoId:producto.id,
+		producto:producto.nombre,       // copia para mostrarlo sin consultar productos
+		empresa:producto.empresa,
+		categoria:producto.categoria,
+		usuario:req.user.usuario        // sale del token, no del body
+	};
+	await log(req.user.usuario, "agregar a wishlist", "/Productos/"+producto.id);
+	await createData("wishlist", valores, res);
+});
+
+app.delete("/Wishlist/:id", autenticar(["consumidor"]), async (req, res)=>{
+	await log(req.user.usuario, "quitar de wishlist", "/Wishlist/"+req.params.id);
+	await deleteOne("wishlist", {id:Number(req.params.id), usuario:req.user.usuario}, res);
+});
 
 app.post("/registrarse", async (req, res)=>{
 	const name=req.body.name;

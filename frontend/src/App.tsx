@@ -5,6 +5,7 @@ import {listarProductos, editarProductos, crearProductos} from "./Productos";
 import {listarComercios, editarComercios } from "./Comercios";
 import {listarVacantes, editarVacantes, crearVacantes} from "./Vacantes";
 import {listarPostulaciones, editarPostulaciones} from "./Postulaciones";
+import {listarWishlist} from "./Wishlist";
 import {dataProvider} from "./dataProvider";
 import Registro from "./registrarse";
 import Inicio from "./Inicio";
@@ -176,6 +177,12 @@ loginPage={MyLoginPage} >
      name="Solicitudes"
      list={listarSolicitudes}
      />
+
+ <Resource
+    name="Wishlist"
+    list={listarWishlist}
+    options={{ label: "Mi wishlist" }}
+ />
 
  <CustomRoutes noLayout>
     <Route path="/Inicio" element={<Inicio />}/>

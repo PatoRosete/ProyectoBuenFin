@@ -2,17 +2,24 @@ import { AuthProvider } from "react-admin";
 
 type Regla = (p: { resource: string; action: string; record?: any }) => boolean;
 
-
+//Implementación de IA
 const esMio = (record?: any) => {
     const { id } = JSON.parse(sessionStorage.getItem("identity") ?? "{}");
     return !record || record.owner === id;
 };
 
+// Igual que esMio, pero para la wishlist: el dueño es el usuario que la guardó
+const esSuyo = (record?: any) => {
+    const { id } = JSON.parse(sessionStorage.getItem("identity") ?? "{}");
+    return !record || record.usuario === id;
+};
+
 const accessControlStrategies: Record<string, Regla> = {
     // el admin puede todo menos: postularse (es de consumidores), y crear o editar vacantes (es de cada comercio).
-    // De las vacantes solo puede verlas y borrarlas.
+    // De las vacantes solo puede verlas y borrarlas. La wishlist es solo de consumidores.
     admin: ({ resource, action }) =>
-        action !== "postular" && !(resource === "Vacantes" && ["create", "edit"].includes(action)),
+        action !== "postular" && resource !== "Wishlist"
+        && !(resource === "Vacantes" && ["create", "edit"].includes(action)),
     comercio: ({ resource, action, record }) => {
         if (resource === "Productos" || resource === "Vacantes") {
             return ["list", "show", "create"].includes(action)
@@ -30,9 +37,12 @@ const accessControlStrategies: Record<string, Regla> = {
         return false; 
     },
     // el consumidor no tiene acceso a Postulaciones: solo puede usar el boton "Postularme"
-    consumidor: ({ resource, action }) =>
+    // y administra su wishlist: ver, agregar y quitar solo lo suyo
+    consumidor: ({ resource, action, record }) =>
         (["Productos", "Comercios", "Vacantes"].includes(resource) && ["list", "show"].includes(action))
-        || (resource === "Vacantes" && action === "postular"),
+        || (resource === "Vacantes" && action === "postular")
+        || (resource === "Wishlist"
+            && (["list", "create"].includes(action) || (action === "delete" && esSuyo(record)))),
 };
 
 const authProvider : AuthProvider={
