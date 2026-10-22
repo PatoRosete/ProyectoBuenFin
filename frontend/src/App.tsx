@@ -14,6 +14,13 @@ import { listarSolicitudes, mostrarSolicitudes } from "./Solicitudes";
 import authProvider from "./Authprovider";
 import { deepmerge } from '@mui/utils';
 import { MyLoginPage } from './MyLoginPage';
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import WorkIcon from "@mui/icons-material/Work";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import PendingActionsIcon from "@mui/icons-material/PendingActions";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import { i18nProvider } from './i18nProvider';
 
 const fuente = "'Poppins', sans-serif";
 const variantes = ["h1","h2","h3","h4","h5","h6","subtitle1","subtitle2", "body1","body2","button","caption","overline"];
@@ -145,10 +152,11 @@ const myDarkTheme = deepmerge(radiantDarkTheme, {
 });
 
 export const App = () => (
-<Admin layout={Layout} dataProvider={dataProvider} authProvider={authProvider}  theme={myTheme} darkTheme={ myDarkTheme }
+<Admin layout={Layout} dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider}  theme={myTheme} darkTheme={ myDarkTheme }
 loginPage={MyLoginPage} >
 <Resource
     name="Productos"
+    icon={ShoppingBagIcon}
     list={listarProductos}
     edit={editarProductos}
     create={crearProductos}
@@ -157,6 +165,7 @@ loginPage={MyLoginPage} >
 
  <Resource
     name="Comercios"
+    icon={StorefrontIcon}
     list={listarComercios}
     edit={editarComercios}
     show={mostrarComercios}
@@ -164,6 +173,7 @@ loginPage={MyLoginPage} >
 
  <Resource
     name="Vacantes"
+    icon={WorkIcon}
     list={listarVacantes}
     edit={editarVacantes}
     create={crearVacantes}
@@ -171,18 +181,21 @@ loginPage={MyLoginPage} >
 
  <Resource
     name="Postulaciones"
+    icon={AssignmentIcon}
     list={listarPostulaciones}
     edit={editarPostulaciones}
 />
 
   <Resource 
      name="Solicitudes"
+     icon={PendingActionsIcon}
      list={listarSolicitudes}
      show={mostrarSolicitudes}
      />
 
  <Resource
     name="Wishlist"
+    icon={FavoriteIcon}
     list={listarWishlist}
     options={{ label: "Mi wishlist" }}
  />
