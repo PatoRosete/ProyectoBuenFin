@@ -222,14 +222,21 @@ app.delete("/Comercios/:id", autenticar(["admin"]), async (req, res)=>{
 
 
 app.post("/registrarse", async (req, res)=>{
+	const name=req.body.name;
+	const lastname=req.body.lastname;
+	const telef=req.body.telefono;
+	const puesto=req.body.puesto;
+	const email=req.body.email;
 	const user=req.body.username;
 	const pass=req.body.password;
-	const name=req.body.name;
-	const email=req.body.email;
-	if(!esTexto(user) || !esTexto(pass) || !esTexto(name) || !esTexto(email)) return res.sendStatus(400);
+
+	if(!esTexto(name) || !esTexto(lastname) || !esTexto(telef) 
+	|| !esTexto(puesto) || !esTexto(email)|| !esTexto(user)
+	|| !esTexto(pass)) return res.sendStatus(400);
 	const existente=await db.collection("usuarios").findOne({usuario:user});
 	if(existente!=null) return res.sendStatus(403);
-	await db.collection("usuarios").insertOne({usuario:user, nombre: name, correo: email, password:await hashear(pass), rol:"consumidor"});
+	await db.collection("usuarios").insertOne({ nombre: name, apellido: lastname, telefono: telef,
+	puesto: puesto, correo: email, usuario:user, password:await hashear(pass), rol:"consumidor"});
 	res.sendStatus(201);
 });
 

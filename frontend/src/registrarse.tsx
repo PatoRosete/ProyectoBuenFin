@@ -1,9 +1,17 @@
 import React, {useState, ChangeEvent} from "react";
-import { Box, Card, Typography, TextField, Button, Alert } from "@mui/material";
+import { Box, Card, Typography, TextField, Button, Alert, Divider  } from "@mui/material";
+import { Link } from "react-router-dom";
+import BarraSuperiorLR from "./BarraSuperiorLR";
+import { useNotify} from 'react-admin';
+import { useNavigate } from "react-router-dom";
 
 const Registro: React.FC =()=>{
 
-    const [datos, setDatos]=useState({username:"", name:"", email:"", password:""});
+    const [datos, setDatos]=useState({name:"", lastname:"",
+    telefono:"", puesto:"", email:"", username:"", password:"", confirmacion:""});
+
+    const navigate = useNavigate();
+    const notify = useNotify(); 
 
     const handleChange=(event: ChangeEvent<HTMLInputElement>)=>{setDatos({...datos, [event.target.name]:event.target.value })};
 
@@ -15,49 +23,106 @@ const Registro: React.FC =()=>{
         })
         try{
             const res=await fetch(request);
+            if(res.status==403){
+                notify(
+                    <Alert severity="error" variant="filled">
+                        Ese usuario ya existe
+                    </Alert>
+                );
+                return;
+            }
             if(res.status<200 || res.status>=300){
                 throw new Error(res.statusText);
             }
+            notify(
+                <Alert severity="success" variant="outlined">
+                    ¡Cuenta creada! Ya puedes iniciar sesión
+                </Alert>
+            );
+            navigate("/Inicio");
         }catch{
-            throw new Error("No se pudo crear el usuario")
+            notify(
+                <Alert severity="error" variant="filled">
+                    No se pudo crear la cuenta. Intenta de nuevo.
+                </Alert>
+            );
         }
     };
     return(
 
-        /*<Box sx={{ bgcolor: "background.paper", boxShadow: 4, borderRadius: 3, p: 20, width: 800, mt: 10, mb:7, ml:10, mr:30 }}>
-        <Box sx={{ color: "primary.contrastText", fontSize: 30 }}>Ventas de la semana</Box>
-        <Box sx={{ color: "primary.contrastText", fontSize: 34, fontWeight: "bold" }}>98.3 K</Box>
-        <Box sx={{ color: "primary.contrastText", fontWeight: "bold", display: "inline" }}>+18.77%</Box>
-        <Box sx={{ color: "primary.contrastText", display: "inline", ml: 1 }}>vs. semana pasada</Box>
-        </Box>*/
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+        <BarraSuperiorLR />
 
-        <div> 
-            <h2>Registro de usuarios</h2>
-            <div>
-                <label>Usuario: </label>
-                <TextField variant="outlined" id="username" name="username" value={datos.username} onChange={handleChange}/>
-            </div>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, bgcolor: "background.paper", 
+            boxShadow: 4, borderRadius: 3, p: 7, width: 900, mt: 5, mb:7, ml:31, mr:36, py: { xs: 2, sm: 3 }, }}>
+            
+            <Box sx={{ color: "primary.contrastText", fontSize: 25, fontWeight: "bold", textAlign: "center"}}>
+                Regístrate
+            </Box>
 
-             <div>
-                <label>Nombre: </label>
-                <TextField variant="outlined" id="name" name="name" value={datos.name} onChange={handleChange}/>
-            </div>
+            <Divider />
 
-             <div>
-                <label>Correo Electrónico: </label>
-                <TextField variant="outlined" id="email" name="email" value={datos.email} onChange={handleChange}/>
-            </div>
+            <Box sx={{ color: "primary.contrastText"}}>
+                Para registrarte, ingresa tu información en los siguientes campos. Los campos marcados con asterisco * son obligatorios.
+            </Box>
 
-            <div>
-                <label>Password: </label>
-                <TextField variant="outlined" type="password" id="password" name="password" value={datos.password}  onChange={handleChange}/>
-            </div>
-            <div>
-                <button type="button" onClick={handleSendData}>
-                    Crear usuario
-                </button>
-            </div>
-        </div>
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Nombre(s):
+            </Box>
+
+            <TextField variant="outlined" id="name" label="Ingresa tu nombre" name="name" value={datos.name} onChange={handleChange} />
+
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Apellidos:
+            </Box>
+
+            <TextField variant="outlined" id="lastname" label="Ingresa tus apellidos" name="lastname" value={datos.lastname} onChange={handleChange} />
+
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Teléfono:
+            </Box>
+
+            <TextField variant="outlined" id="telefono" label="Ingresa tu número de teléfono" name="telefono" value={datos.telefono} onChange={handleChange} />
+
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Puesto:
+            </Box>
+
+            <TextField variant="outlined" id="puesto" label="Ingresa tu puesto" name="puesto" value={datos.puesto} onChange={handleChange} />
+
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Correo electrónico:
+            </Box>
+
+            <TextField variant="outlined" id="email" label="Ingresa tu correo electrónico" name="email" value={datos.email} onChange={handleChange} />
+
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Nombre de usuario:
+            </Box>
+
+            <TextField variant="outlined" id="username" label="Ingresa tu nombre de usuario" name="username" value={datos.username} onChange={handleChange} />
+
+            <Box sx={{ color: "primary.contrastText", fontWeight: "bold"}}>
+                Contraseña:
+            </Box>
+            <TextField variant="outlined" type="password" id="password" label="Ingresa tu contraseña" name="password" value={datos.password} onChange={handleChange} />
+            
+            <Button variant="contained" onClick={handleSendData} >
+                Crear cuenta 
+            </Button>
+
+
+            <Box sx={{ color: "primary.contrastText", fontSize: 13}}>
+                Al momento de registrarte para el uso de marca de “El Buen Fin”, 
+                también se procesará tu inscripción al Sorteo SAT en el marco de “El Buen Fin” 
+                para que las compras realizadas en tu negocio participen en el sorteo.
+            </Box>
+
+
+        </Box>
+
+        </Box>
+
 
     )
 };

@@ -9,15 +9,26 @@ import Inicio from "./Inicio";
 import RegistroComercio from "./registrarse-comercio";
 import authProvider from "./Authprovider";
 import { deepmerge } from '@mui/utils';
+import { MyLoginPage } from './MyLoginPage';
+
+const fuente = "'Poppins', sans-serif";
+const variantes = ["h1","h2","h3","h4","h5","h6","subtitle1","subtitle2", "body1","body2","button","caption","overline"];
+
+const typography = {
+    fontFamily: fuente,
+    ...Object.fromEntries(variantes.map(v => [v, { fontFamily: fuente }])),
+};
 
 const myTheme = deepmerge(radiantLightTheme, {
    palette: {
-        primary:    { main: "#e20612" },
+        primary:    { main: "#e20612",
+        dark: "#b0040e",
+        light: "#f9626a",
+        contrastText: "#FFFFFF", },
         background: { default: "#FFFFFF", paper: "#FFFFFF" },
+        
     },
-   typography: {
-        fontFamily: "'Poppins', sans-serif"
-    },
+   typography: typography,
     sidebar: {
         width: 270,
         closedWidth: 50,
@@ -31,13 +42,15 @@ const myTheme = deepmerge(radiantLightTheme, {
                 },
             },
         },
+
+
         RaMenuItemLink: {                          
             styleOverrides: {
                 root: {
                   "&.RaMenuItemLink-active": {
                     background: "#e20612",
                     color: "#FFFFFF",
-                    borderLeft: "#e20612",
+                    borderLeft: "none"
                   },
                 },
             },
@@ -71,11 +84,13 @@ const myTheme = deepmerge(radiantLightTheme, {
 
 const myDarkTheme = deepmerge(radiantDarkTheme, {
    palette: {
-        primary:    { main: "#f9626a" },
+        primary:    { main: "#f9626a",
+         dark: "#e7343d",
+         light: "#ff8f95",
+        contrastText: "#FFFFFF",
+         },
     },
-   typography: {
-        fontFamily: "'Poppins', sans-serif"
-    },
+   typography: typography,
     sidebar: {
         width: 270,
         closedWidth: 50,
@@ -95,7 +110,7 @@ const myDarkTheme = deepmerge(radiantDarkTheme, {
                   "&.RaMenuItemLink-active": {
                     background: "#f9626a",
                     color: "#FFFFFF",
-                    borderLeft: "#f9626a",
+                    borderLeft: "none"
                   },
                 },
             },
@@ -126,7 +141,8 @@ const myDarkTheme = deepmerge(radiantDarkTheme, {
 });
 
 export const App = () => (
-<Admin layout={Layout} dataProvider={dataProvider} authProvider={authProvider}  theme={myTheme} darkTheme={ myDarkTheme }>
+<Admin layout={Layout} dataProvider={dataProvider} authProvider={authProvider}  theme={myTheme} darkTheme={ myDarkTheme }
+loginPage={MyLoginPage} >
 <Resource
     name="Productos"
     list={listarProductos}
@@ -138,7 +154,6 @@ export const App = () => (
     name="Comercios"
     list={listarComercios}
     edit={editarComercios}
-    create={crearComercios}
 />
  <CustomRoutes noLayout>
     <Route path="/Inicio" element={<Inicio />}/>
