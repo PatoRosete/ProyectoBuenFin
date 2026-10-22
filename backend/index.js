@@ -106,6 +106,10 @@ async function getList(coleccion, req, res, filtro, permitidos){
 	const inicio=Number(req.query._start);
 	const fin=Number(req.query._end);
 	let data=await db.collection(coleccion).find(consulta).sort(sorter).project({_id:0}).toArray();	// Implementación de IA
+		const q=req.query.q;   // Implementación de IA: buscador (SearchInput)
+	if(typeof q==="string" && q.trim()!==""){
+		data=data.filter(d=>String(d.nombre).toLowerCase().includes(q.trim().toLowerCase()));
+	}
 	res.set("Access-Control-Expose-Headers", "X-Total-Count");
 	res.set("X-Total-Count", data.length);
 	res.json(data.slice(inicio, fin));
@@ -169,7 +173,8 @@ function listar(coleccion, recurso, permitidos, soloPropios){
 
 
 
-app.get("/Productos", autenticar(["admin","comercio","consumidor"]), listar("productos", "Productos", ["comercioId"], true));
+
+app.get("/Productos", autenticar(["admin","comercio","consumidor"]), listar("productos", "Productos", ["comercioId", "categoria"], true));
 
 app.get("/Productos/:id", autenticar(["admin","comercio","consumidor"]), async (req, res)=>{
 	const filtro=filtroPorRol(req);
