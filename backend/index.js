@@ -10,9 +10,12 @@ const https = require('https');
 const app=express();
 let db;
 const PORT=3000;
-const ROLES_VALIDOS=["consumidor","comercio","admin"]; // Implementación de IA
-const ESTADOS_POSTULACION=["enviada","aceptada","rechazada"];   // Implementación de IA
-const RFC_REGEX=/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;   // 3-4 letras + fecha AAMMDD + homoclave, Implementación de IA
+
+// Implementación de IA: roles válidos, estados de postulación y regex para validar RFC
+// Prompt 1
+const ROLES_VALIDOS=["consumidor","comercio","admin"]; 
+const ESTADOS_POSTULACION=["enviada","aceptada","rechazada"];   
+const RFC_REGEX=/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/;   // 3-4 letras + fecha AAMMDD + homoclave
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -47,7 +50,8 @@ function hashear(pass){
 	return argon2.hash(pass, {type:argon2.argon2id, memoryCost:64*1024, timeCost:3, parallelism:1, saltLength:128});
 }
 
-// Implementación de IA
+// Implementación de IA 
+// Prompt 1
 function esTexto(v){
 	return typeof v==="string" && v.trim()!=="";
 }
@@ -58,7 +62,8 @@ async function siguienteId(coleccion){
 	return ultimo.length ? ultimo[0].id+1 : 1;
 }
 
-// Implementación de IA
+// Implementación de IA: filtroDesdeQuery devuelve un filtro para la consulta a la base de datos, usando solo los campos permitidos y convirtiendo a número los que sean numéricos
+// Prompt 2
 function filtroDesdeQuery(query, permitidos){
 	const filtro={};
 	for(let i=0; i<permitidos.length; i++){
@@ -70,7 +75,8 @@ function filtroDesdeQuery(query, permitidos){
 	return filtro;
 }
 
-// Implementación de IA
+// Implementación de IA: autenticar devuelve un middleware que verifica el token JWT y el rol del usuario
+// Prompt 2
 function autenticar(rolesPermitidos){
 	return (req, res, next)=>{
 		try{
@@ -86,7 +92,8 @@ function autenticar(rolesPermitidos){
 	};
 }
 
-// Implementación de IA
+// Implementación de IA: filtroPorRol devuelve un filtro para que los comercios solo vean sus propios datos, mientras que los administradores ven todos los datos
+// Prompt 1
 function filtroPorRol(req){
 	return req.user.rol=="comercio" ? {owner:req.user.usuario} : {};
 }
@@ -107,7 +114,9 @@ async function getList(coleccion, req, res, filtro, permitidos){
 	res.json(data.slice(inicio, fin));
 }
 
-async function getMany(coleccion, req, res, filtro){	// Implementación de IA
+// Implementación de IA: getMany devuelve varios registros por id, usando el query string id=1&id=2&id=3
+// Prompt 1
+async function getMany(coleccion, req, res, filtro){	
 	const ids=[].concat(req.query.id).map(Number);
 	const consulta=Object.assign({}, filtro);
 	consulta.id={$in:ids};	// Implementación de IA
@@ -309,6 +318,8 @@ app.get("/Postulaciones/:id", autenticar(["admin","comercio","consumidor"]), asy
 });
 
 // El boton "Postularme" solo manda vacanteId; todo lo demas lo pone el servidor
+// Implementación de IA: un consumidor solo puede postularse una vez por vacante
+// Prompt 4
 app.post("/Postulaciones", autenticar(["consumidor"]), async (req, res)=>{
 	const vacante=await db.collection("vacantes").findOne({id:Number(req.body.vacanteId)});
 	if(!vacante) return res.sendStatus(404);
