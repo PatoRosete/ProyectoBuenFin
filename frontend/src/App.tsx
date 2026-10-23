@@ -27,13 +27,15 @@ import AccessibilityNewIcon from "@mui/icons-material/AccessibilityNew";
 const fuente = "'Poppins', sans-serif";
 const variantes = ["h1","h2","h3","h4","h5","h6","subtitle1","subtitle2", "body1","body2","button","caption","overline"];
 
+// Implementación de IA para el cambio de letra de react-admin - prompt 30
 const typography = {
     fontFamily: fuente,
     ...Object.fromEntries(variantes.map(v => [v, { fontFamily: fuente }])),
 };
 
+// Modificación del tema con ayuda de IA - prompt 16
 const myTheme = deepmerge(radiantLightTheme, {
-   palette: {
+   palette: {   // Modificación de colores con IA - prompt 37
         primary:    { main: "#e20612",
         dark: "#b0040e",
         light: "#f9626a",
@@ -47,7 +49,7 @@ const myTheme = deepmerge(radiantLightTheme, {
         closedWidth: 50,
     },
    components: {
-        MuiAppBar: {                   
+        MuiAppBar: {   // Ayuda de IA para cambiar los colores - prompt 18                
             styleOverrides: {
                 colorSecondary: {
                     backgroundColor: "#e20612",
@@ -69,7 +71,7 @@ const myTheme = deepmerge(radiantLightTheme, {
             },
         },
 
-        RaDatagrid: {                          
+        RaDatagrid: {    // Ayuda de IA - prompt 20            
             styleOverrides: {
                 root: {
                   "& .RaDatagrid-headerCell": {
@@ -82,7 +84,7 @@ const myTheme = deepmerge(radiantLightTheme, {
 
         
 
-        MuiPaper: {
+        MuiPaper: {     // Ayuda de IA para las sombras - prompt 19
             styleOverrides: {
             elevation1: {
             boxShadow: "rgba(0,0,0,0.12) -2px 2px, " +
@@ -153,6 +155,8 @@ const myDarkTheme = deepmerge(radiantDarkTheme, {
    
 });
 
+// Implementación de IA para menú de configuración - prompt 52
+
 export const App = () => (
 <Admin layout={Layout} dataProvider={dataProvider} i18nProvider={i18nProvider} authProvider={authProvider}  theme={myTheme} darkTheme={ myDarkTheme }
 loginPage={MyLoginPage} >
@@ -202,6 +206,7 @@ loginPage={MyLoginPage} >
     options={{ label: "Mi wishlist" }}
  />
 
+ 
  <Resource
     name="configuracion"
     list={Configuracion}

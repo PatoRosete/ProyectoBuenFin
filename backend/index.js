@@ -422,6 +422,7 @@ app.post("/registrarse-comercio", async (req, res)=>{
 	
 	await db.collection("usuarios").insertOne({usuario:b.username, password:await hashear(b.password), rol:"consumidor"});
 
+	// Implementación de IA para corrección de código - prompt 43
 	await db.collection("solicitudes").insertOne({
 		id:await siguienteId("solicitudes"),
 		usuario:b.username,

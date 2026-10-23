@@ -1,7 +1,8 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton } from "@mui/material";
+import { AppBar, Toolbar, Typography, Box} from "@mui/material";
 import { Link } from "react-router-dom";
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
 
+// Implementacón de IA para la creación de la barra superior y el logo - prompts 25, 27, 28 y 29
 const BarraSuperior = () => (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" color="secondary">

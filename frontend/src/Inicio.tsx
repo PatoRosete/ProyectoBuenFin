@@ -6,6 +6,7 @@ import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import BarraSuperior from "./BarraSuperior";
 
+// Implementación de IA para la creación de la página con botones que llevan a login y registro - prompt 23
 const beneficios = [
     {
         icono: <TouchAppIcon sx={{ fontSize: 56 }} />,

@@ -2,6 +2,7 @@ import { AppBar, Toolbar, Typography, Button, Box, IconButton } from "@mui/mater
 import { Link } from "react-router-dom";
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
 
+// Implementacón de IA para la creación de la barra superior - prompt 22
 const BarraSuperior = () => (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" color="secondary">

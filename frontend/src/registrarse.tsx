@@ -1,10 +1,11 @@
 import React, {useState, ChangeEvent} from "react";
-import { Box, Card, Typography, TextField, Button, Alert, Divider  } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Box, TextField, Button, Alert, Divider  } from "@mui/material";
 import BarraSuperiorLR from "./BarraSuperiorLR";
 import { useNotify} from 'react-admin';
 import { useNavigate } from "react-router-dom";
 
+
+// Prompt 14: Ayuda de IA para realizar sección de registro (diseño y funcionalidad)
 const Registro: React.FC =()=>{
 
     const [datos, setDatos]=useState({name:"", lastname:"",
@@ -21,11 +22,12 @@ const Registro: React.FC =()=>{
             body:JSON.stringify(datos),
             headers: new Headers({"Content-type":"application/json"})
         })
-        try{
+        try{    // Implementación de IA para el manejo de errores - prompts 39 y 40
+                // Implementacón de IA para diseño de alerta - prompt 41
             const res=await fetch(request);
             if(res.status==403){
                 notify(
-                    <Alert severity="error" variant="filled">
+                    <Alert severity="error" variant="filled"> 
                         Ese usuario ya existe
                     </Alert>
                 );
@@ -39,7 +41,7 @@ const Registro: React.FC =()=>{
                     ¡Cuenta creada! Ya puedes iniciar sesión
                 </Alert>
             );
-            navigate("/Inicio");
+            navigate("/Inicio");    // Implementación de IA - prompt 38
         }catch{
             notify(
                 <Alert severity="error" variant="filled">
@@ -48,7 +50,7 @@ const Registro: React.FC =()=>{
             );
         }
     };
-    return(
+    return( // Diseño humano y explicación de IA - prompts 14, 15 y 36 (líneas de división)
 
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
         <BarraSuperiorLR />

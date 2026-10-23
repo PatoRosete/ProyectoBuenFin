@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Title } from "react-admin";
 import { Card, CardContent, Typography, Button, Stack } from "@mui/material";
+// Implementación de IA para menú de accesibilidad - prompt 51
 
 // Implementación de IA: valores iniciales (fuera del componente para que no se pierdan al cambiar de página)
 const inicial = { tamano: 100, contraste: false, grises: false };

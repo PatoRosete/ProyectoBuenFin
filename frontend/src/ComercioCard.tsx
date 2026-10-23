@@ -1,7 +1,7 @@
 import { Card, CardMedia, CardContent, CardActions, Typography, Chip, Stack } from "@mui/material";
-import { useRecordContext, ShowButton, EditButton, ReferenceField, TextField } from "react-admin";
+import { useRecordContext, ShowButton, EditButton } from "react-admin";
 
-const ComercioCard = () => {
+const ComercioCard = () => {    // Implementación de IA para show de comercios - prompt 58
     const record = useRecordContext();   // el producto de ESTA tarjeta
     console.log(record);
     if (!record) return null;

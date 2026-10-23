@@ -7,12 +7,12 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Grid, Typography, Chip, Stack } from "@mui/material";
 import { Button as MuiButton } from "@mui/material";
 
-// Implementación de IA
+// Implementación de IA para show de comercios - prompt 58
 const filtros = [
     <SearchInput key="q" source="q" alwaysOn />,
 ];
 
-// Implementación de IA: redirige a la página de la oferta en la tienda (RF-12)
+// Implementación de IA: redirige a la página de la oferta en la tienda - prompt 59
 const BotonVisitarTienda= (_props: { label?: string | false }) => {
     const record = useRecordContext();
     if (!record?.sitioweb) return null;            // si el producto no tiene link, no se muestra

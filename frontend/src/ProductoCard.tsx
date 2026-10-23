@@ -3,12 +3,13 @@ import { useRecordContext, ShowButton, EditButton, ReferenceField, TextField } f
 import FavoritoButton from "./Favoritobutton";
 
 
+// Implementación de IA para todo el diseño de las cards de los productos - prompt 46
 const ProductoCard = () => {
     const record = useRecordContext();   // el producto de ESTA tarjeta
     console.log(record);
     if (!record) return null;
 
-    return (
+    return ( // Implementación de IA para diseño de ofertas - promts 54, 55 y 56
         <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <CardMedia
                 component="img"

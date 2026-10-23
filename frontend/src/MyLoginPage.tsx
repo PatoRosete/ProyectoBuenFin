@@ -1,10 +1,10 @@
-import React, {useState, ChangeEvent} from "react";
+import {useState, ChangeEvent} from "react";
 import { Link } from "react-router-dom";
 import { useLogin, useNotify} from 'react-admin';
-import { Box, Card, Typography, TextField, Button, Alert, Divider } from "@mui/material";
+import { Box, TextField, Button, Divider } from "@mui/material";
 import BarraSuperiorLR from "./BarraSuperiorLR";
 
-
+// Implementacón de IA para la funcionalidad antes del return de login - prompt 21 y 31
 export const MyLoginPage = () => {
     const [datos, setDatos]=useState({username:"", password:""});
 
@@ -22,7 +22,7 @@ export const MyLoginPage = () => {
     };
 
 
-    return (
+    return (    // Implementación de IA para diseño de login - prompt 32
 
         <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
         <BarraSuperiorLR />

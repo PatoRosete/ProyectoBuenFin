@@ -2,7 +2,7 @@ import { List, useListContext, RecordContextProvider, ReferenceField } from "rea
 import { Grid, Typography } from "@mui/material";
 import ProductoCard from "./ProductoCard";
 
-// Implementación de IA: wishlist en tarjetas, reutilizando la tarjeta del catálogo
+// Implementación de IA: wishlist en tarjetas, reutilizando la tarjeta del catálogo - prompt 35
 const TarjetasWishlist = () => {
     const { data, isPending } = useListContext();
     if (isPending) return null;

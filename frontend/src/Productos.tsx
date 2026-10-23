@@ -7,7 +7,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Grid, Typography, Chip, Stack } from "@mui/material";
 import { Button as MuiButton } from "@mui/material";
 
-// Implementación de IA: redirige a la página de la oferta en la tienda (RF-12)
+// Implementación de IA: redirige a la página de la oferta en la tienda - prompt 59
 const BotonVerOferta = (_props: { label?: string | false }) => {
     const record = useRecordContext();
     if (!record?.urlOferta) return null;            // si el producto no tiene link, no se muestra
@@ -25,17 +25,18 @@ const BotonVerOferta = (_props: { label?: string | false }) => {
     );
 };
 
-// Implementación de IA
+// Implementación de IA 
 // Categorias de los productos (las mismas para filtrar y para elegir al crear o editar)
 export const CATEGORIAS = ["Tecnología","Electrodomésticos","Línea blanca","Moda y calzado","Muebles","Autoservicio","Artículos para el hogar"].map((c) => ({ id: c, name: c }));
 
-// Implementación de IA
+// Implementación de IA 
 //Prompt 7
 const filtros = [
     <SearchInput key="q" source="q" alwaysOn />,
     <SelectInput key="categoria" source="categoria" choices={CATEGORIAS} alwaysOn />,
 ];
 
+// Implementación de IA de cards de productos - prompt 46
 const CuadriculaProductos = () => {
     const { data } = useListContext();   // los productos de la página actual
     if (!data) return null;
@@ -85,7 +86,7 @@ export const editarProductos = ()=>{
 
 export const crearProductos = ()=>{
     const { permissions } = usePermissions();
-    return (
+    return (    // Implementación de permisos - prompt 48
     <Create>
         <SimpleForm>
             <TextInput disabled source = "id" label = 'ID'/>
@@ -104,7 +105,7 @@ export const crearProductos = ()=>{
     </Create>
     )
 };
-
+// Implementación de IA para diseño de ver oferta - prompt 57
 const DetalleProducto = () => {
     const p = useRecordContext();
     if (!p) return null;
@@ -113,7 +114,7 @@ const DetalleProducto = () => {
     const oferta = Number(p.precioOferta);
     const ahorro = precio - oferta;
 
-    return (
+    return (    // Implementación de IA para diseño de ofertas - promts 54, 55 y 56
         <Grid container spacing={4} sx={{ p: { xs: 2, md: 4 } }}>
             <Grid size={{ xs: 12, md: 6 }}>
                 <Box
