@@ -13,6 +13,7 @@ export const Configuracion = () => {
     const cambiar = (nuevo: Partial<typeof ajustes>) => {
         const a = { ...ajustes, ...nuevo };
         document.documentElement.style.fontSize = a.tamano + "%";
+        setAjustes(a);
     };
 
     return (

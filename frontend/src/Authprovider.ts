@@ -87,6 +87,7 @@ const authProvider : AuthProvider={
         return Promise.resolve(sessionStorage.getItem("rol"));
     },
     canAccess: async ({resource, action, record})=>{
+        if (resource === "configuracion") return true;
         const rol=sessionStorage.getItem("rol") ?? "";
         return accessControlStrategies[rol]?.({resource, action, record}) ?? false;   
     },
