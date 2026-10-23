@@ -2,6 +2,7 @@ import { Button, CanAccess, useCreate, useGetList, useNotify, useRecordContext }
 
 // Implementación de IA
 // El consumidor no ve nada de sus postulaciones: solo el botón, que cambia si ya se postuló
+//Prompt 4
 const BotonPostular = () => {
     const record = useRecordContext();
     const notify = useNotify();

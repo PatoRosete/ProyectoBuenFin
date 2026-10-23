@@ -86,6 +86,9 @@ const authProvider : AuthProvider={
     getPermissions: ()=>{
         return Promise.resolve(sessionStorage.getItem("rol"));
     },
+
+    //Implementacion de IA: se verifica si el usuario tiene permiso para acceder a un recurso, acción y registro específico
+    //Prompt 1
     canAccess: async ({resource, action, record})=>{
         if (resource === "configuracion") return true;
         const rol=sessionStorage.getItem("rol") ?? "";

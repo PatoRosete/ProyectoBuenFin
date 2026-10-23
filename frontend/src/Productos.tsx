@@ -30,6 +30,7 @@ const BotonVerOferta = (_props: { label?: string | false }) => {
 export const CATEGORIAS = ["Tecnología","Electrodomésticos","Línea blanca","Moda y calzado","Muebles","Autoservicio","Artículos para el hogar"].map((c) => ({ id: c, name: c }));
 
 // Implementación de IA
+//Prompt 7
 const filtros = [
     <SearchInput key="q" source="q" alwaysOn />,
     <SelectInput key="categoria" source="categoria" choices={CATEGORIAS} alwaysOn />,

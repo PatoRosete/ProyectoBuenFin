@@ -4,6 +4,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 // Implementación de IA
 // Botón de corazón de la lista de Productos: agrega o quita el producto de la wishlist del consumidor
+//Prompt 10
 const BotonFavorito = () => {
     const record = useRecordContext();
     const notify = useNotify();
