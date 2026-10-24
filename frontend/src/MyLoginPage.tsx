@@ -4,7 +4,7 @@ import { useLogin, useNotify} from 'react-admin';
 import { Box, TextField, Button, Divider } from "@mui/material";
 import BarraSuperiorLR from "./BarraSuperiorLR";
 
-// Implementacón de IA para la funcionalidad antes del return de login - prompt 21 y 31
+// Implementación de IA para la funcionalidad antes del return de login - prompt 21 y 31
 export const MyLoginPage = () => {
     const [datos, setDatos]=useState({username:"", password:""});
 

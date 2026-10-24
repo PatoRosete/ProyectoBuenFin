@@ -23,7 +23,7 @@ const Registro: React.FC =()=>{
             headers: new Headers({"Content-type":"application/json"})
         })
         try{    // Implementación de IA para el manejo de errores - prompts 39 y 40
-                // Implementacón de IA para diseño de alerta - prompt 41
+                // Implementación de IA para diseño de alerta - prompt 41
             const res=await fetch(request);
             if(res.status==403){
                 notify(

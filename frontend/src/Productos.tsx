@@ -7,7 +7,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Grid, Typography, Chip, Stack } from "@mui/material";
 import { Button as MuiButton } from "@mui/material";
 
-// Implementación de IA: redirige a la página de la oferta en la tienda - prompt 59
+// Implementación de IA: redirige a la página de la tienda - prompt 59
 const BotonVerOferta = (_props: { label?: string | false }) => {
     const record = useRecordContext();
     if (!record?.urlOferta) return null;            // si el producto no tiene link, no se muestra
@@ -114,7 +114,7 @@ const DetalleProducto = () => {
     const oferta = Number(p.precioOferta);
     const ahorro = precio - oferta;
 
-    return (    // Implementación de IA para diseño de ofertas - promts 54, 55 y 56
+    return (    // Implementación de IA para diseño de ofertas - prompts 54, 55 y 56
         <Grid container spacing={4} sx={{ p: { xs: 2, md: 4 } }}>
             <Grid size={{ xs: 12, md: 6 }}>
                 <Box

@@ -9,7 +9,7 @@ const ProductoCard = () => {
     console.log(record);
     if (!record) return null;
 
-    return ( // Implementación de IA para diseño de ofertas - promts 54, 55 y 56
+    return ( // Implementación de IA para diseño de ofertas - prompts 54, 55 y 56
         <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <CardMedia
                 component="img"

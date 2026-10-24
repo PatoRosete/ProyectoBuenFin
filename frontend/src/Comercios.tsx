@@ -12,7 +12,7 @@ const filtros = [
     <SearchInput key="q" source="q" alwaysOn />,
 ];
 
-// Implementación de IA: redirige a la página de la oferta en la tienda - prompt 59
+// Implementación de IA: redirige a la página de la tienda - prompt 59
 const BotonVisitarTienda= (_props: { label?: string | false }) => {
     const record = useRecordContext();
     if (!record?.sitioweb) return null;            // si el producto no tiene link, no se muestra
